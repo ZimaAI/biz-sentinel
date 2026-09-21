@@ -1,0 +1,1876 @@
+openapi: 3.1.0
+info:
+  title: CommerceLens 电商经营分析 API
+  version: 1.0.0-design
+  description: 'Proposed extension contract, not an upstream API or an implemented production backend. Monetary units: integer
+    cents encoded as strings. Business timezone: Asia/Shanghai.'
+servers:
+- url: /api/commerce/v1
+security:
+- sessionCookie: []
+paths:
+  /me:
+    get:
+      operationId: getMe
+      summary: 当前身份与授权范围
+      tags:
+      - me
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId: &id001
+                    type: string
+                    minLength: 1
+                    maxLength: 96
+                  data:
+                    $ref: '#/components/schemas/Me'
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /overview:
+    get:
+      operationId: getOverview
+      summary: 授权范围的经营总览
+      tags:
+      - overview
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId: *id001
+                  data:
+                    $ref: '#/components/schemas/Overview'
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: storeIds
+        in: query
+        required: true
+        schema:
+          type: array
+          items: *id001
+      - name: start
+        in: query
+        required: true
+        schema: &id002
+          type: string
+          format: date
+      - name: endExclusive
+        in: query
+        required: true
+        schema: *id002
+      - name: comparison
+        in: query
+        required: true
+        schema:
+          enum:
+          - PREVIOUS_WEEK_SAME_DAYS
+          - PREVIOUS_PERIOD
+  /metrics:
+    get:
+      operationId: listMetrics
+      summary: 已发布指标目录
+      tags:
+      - metrics
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId: *id001
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Metric'
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /queries:
+    post:
+      operationId: queryMetrics
+      summary: 执行严格受控的指标查询
+      tags:
+      - queries
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId: *id001
+                  data:
+                    $ref: '#/components/schemas/QueryResult'
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - &id003
+        name: X-CSRF-Token
+        in: header
+        required: true
+        schema: *id001
+        description: Required with authenticated same-origin mutation.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                requestedStoreIds:
+                  type: array
+                  items: *id001
+                  minItems: 1
+                spec:
+                  $ref: '#/components/schemas/QuerySpec'
+              required:
+              - requestedStoreIds
+              - spec
+  /runs:
+    post:
+      operationId: createRun
+      summary: 创建诊断运行，连接与执行独立
+      tags:
+      - runs
+      responses:
+        '202':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId: *id001
+                  data:
+                    $ref: '#/components/schemas/Run'
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - &id006
+        name: Idempotency-Key
+        in: header
+        required: true
+        schema: *id001
+        description: Same tenant/subject/operation/key with different body returns 409.
+      - *id003
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRun'
+    get:
+      operationId: listRuns
+      summary: 当前用户可见运行
+      tags:
+      - runs
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId: *id001
+                  data:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Run'
+                      nextCursor:
+                        type:
+                        - string
+                        - 'null'
+                    required:
+                    - items
+                    - nextCursor
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - &id004
+        name: cursor
+        in: query
+        required: false
+        schema: &id007
+          type: string
+      - &id005
+        name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: status
+        in: query
+        required: false
+        schema:
+          enum: &id011
+          - QUEUED
+          - PLANNING
+          - WAITING_APPROVAL
+          - RUNNING
+          - CANCEL_REQUESTED
+          - SUCCEEDED
+          - PARTIAL
+          - FAILED
+          - CANCELLED
+          - EXPIRED
+          - ACCESS_REVOKED
+  /runs/{runId}:
+    get:
+      operationId: getRun
+      summary: 运行快照
+      tags:
+      - runs
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId: *id001
+                  data:
+                    $ref: '#/components/schemas/Run'
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: runId
+        in: path
+        required: true
+        schema: *id001
+  /runs/{runId}/approval:
+    post:
+      operationId: approveRun
+      summary: 批准或拒绝指定版本计划
+      tags:
+      - runs
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId: *id001
+                  data:
+                    $ref: '#/components/schemas/Run'
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: runId
+        in: path
+        required: true
+        schema: *id001
+      - *id003
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Approval'
+  /runs/{runId}/cancel:
+    post:
+      operationId: cancelRun
+      summary: 幂等请求取消
+      tags:
+      - runs
+      responses:
+        '202':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId: *id001
+                  data:
+                    $ref: '#/components/schemas/Run'
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: runId
+        in: path
+        required: true
+        schema: *id001
+      - *id003
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                expectedRunVersion:
+                  type: integer
+                  minimum: 1
+              required:
+              - expectedRunVersion
+  /runs/{runId}/events:
+    get:
+      operationId: subscribeRunEvents
+      summary: SSE订阅与重放，不启动任务
+      tags:
+      - runs
+      responses:
+        '200':
+          description: 'Ordered persistent events; heartbeat comments have no ID. Event payload follows RunEvent. Expired
+            cursor: 410.'
+          content:
+            text/event-stream:
+              schema:
+                type: string
+              example: 'id: 1
+
+                event: run.created
+
+                data: {"schemaVersion":"1.0","runId":"r1","sequence":1,"type":"run.created","occurredAt":"2026-09-21T01:00:00Z","payload":{}}
+
+
+                '
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: Last-Event-ID
+        in: header
+        required: false
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+      - name: after
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+      - name: runId
+        in: path
+        required: true
+        schema: *id001
+  /evidence/{evidenceId}:
+    get:
+      operationId: getEvidence
+      summary: 读取当前仍有权访问的证据
+      tags:
+      - evidence
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId: *id001
+                  data:
+                    $ref: '#/components/schemas/Evidence'
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: evidenceId
+        in: path
+        required: true
+        schema: *id001
+  /reports:
+    get:
+      operationId: listReports
+      summary: 当前可见报告
+      tags:
+      - reports
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId: *id001
+                  data:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Report'
+                      nextCursor:
+                        type:
+                        - string
+                        - 'null'
+                    required:
+                    - items
+                    - nextCursor
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - *id004
+      - *id005
+  /reports/{reportId}:
+    get:
+      operationId: getReport
+      summary: 读取不可变报告
+      tags:
+      - reports
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId: *id001
+                  data:
+                    $ref: '#/components/schemas/Report'
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: reportId
+        in: path
+        required: true
+        schema: *id001
+  /reports/{reportId}/export:
+    get:
+      operationId: exportReport
+      summary: 重新鉴权后导出Markdown
+      tags:
+      - reports
+      responses:
+        '200':
+          description: Download report with Content-Disposition attachment. Export is audited.
+          content:
+            text/markdown:
+              schema:
+                type: string
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: reportId
+        in: path
+        required: true
+        schema: *id001
+  /anomaly-rules:
+    get:
+      operationId: listRules
+      summary: 规则列表
+      tags:
+      - anomaly-rules
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId: *id001
+                  data:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/AnomalyRule'
+                      nextCursor:
+                        type:
+                        - string
+                        - 'null'
+                    required:
+                    - items
+                    - nextCursor
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - *id004
+      - *id005
+    post:
+      operationId: createRule
+      summary: 管理员创建规则
+      tags:
+      - anomaly-rules
+      responses:
+        '201':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId: *id001
+                  data:
+                    $ref: '#/components/schemas/AnomalyRule'
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - *id003
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnomalyRuleInput'
+  /anomaly-rules/{ruleId}:
+    patch:
+      operationId: updateRule
+      summary: CAS更新规则并产生新版本
+      tags:
+      - anomaly-rules
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId: *id001
+                  data:
+                    $ref: '#/components/schemas/AnomalyRule'
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: ruleId
+        in: path
+        required: true
+        schema: *id001
+      - *id003
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                expectedVersion:
+                  type: integer
+                  minimum: 1
+                definition:
+                  $ref: '#/components/schemas/AnomalyRuleInput'
+              required:
+              - expectedVersion
+              - definition
+  /anomalies:
+    get:
+      operationId: listAnomalies
+      summary: 业务异常列表
+      tags:
+      - anomalies
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId: *id001
+                  data:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Anomaly'
+                      nextCursor:
+                        type:
+                        - string
+                        - 'null'
+                    required:
+                    - items
+                    - nextCursor
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - *id004
+      - *id005
+  /anomalies/{anomalyId}/acknowledge:
+    post:
+      operationId: acknowledgeAnomaly
+      summary: 确认知晓，不直接解除异常
+      tags:
+      - anomalies
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId: *id001
+                  data:
+                    $ref: '#/components/schemas/Anomaly'
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: anomalyId
+        in: path
+        required: true
+        schema: *id001
+      - *id003
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                comment:
+                  type: string
+                  maxLength: 1000
+              required: []
+  /datasets:
+    get:
+      operationId: listDatasets
+      summary: 数据版本与完整性
+      tags:
+      - datasets
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId: *id001
+                  data:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Dataset'
+                      nextCursor:
+                        type:
+                        - string
+                        - 'null'
+                    required:
+                    - items
+                    - nextCursor
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - *id004
+      - *id005
+  /ingestions:
+    post:
+      operationId: createIngestion
+      summary: 上传标准CSV ZIP，不执行SQL
+      tags:
+      - ingestions
+      responses:
+        '202':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId: *id001
+                  data:
+                    $ref: '#/components/schemas/Ingestion'
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - *id006
+      - *id003
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                archive:
+                  type: string
+                  format: binary
+              required:
+              - archive
+  /ingestions/{jobId}:
+    get:
+      operationId: getIngestion
+      summary: 查询导入校验进度
+      tags:
+      - ingestions
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId: *id001
+                  data:
+                    $ref: '#/components/schemas/Ingestion'
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: jobId
+        in: path
+        required: true
+        schema: *id001
+  /ingestions/{jobId}/publish:
+    post:
+      operationId: publishIngestion
+      summary: 管理员CAS发布不可变快照
+      tags:
+      - ingestions
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId: *id001
+                  data:
+                    $ref: '#/components/schemas/Dataset'
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: jobId
+        in: path
+        required: true
+        schema: *id001
+      - *id003
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                expectedVersion:
+                  type: integer
+                  minimum: 1
+              required:
+              - expectedVersion
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: CL_SESSION
+      description: HttpOnly Secure same-origin authenticated session. Mutations additionally require CSRF header.
+  schemas:
+    Error:
+      type: object
+      additionalProperties: false
+      properties:
+        code: *id007
+        message: *id007
+        requestId: *id001
+        details:
+          type: object
+      required:
+      - code
+      - message
+      - requestId
+    DateRange: &id008
+      type: object
+      additionalProperties: false
+      properties:
+        start: *id002
+        endExclusive: *id002
+      required:
+      - start
+      - endExclusive
+    QuerySpec:
+      type: object
+      additionalProperties: false
+      properties:
+        metricIds:
+          type: array
+          items:
+            enum: &id010
+            - paid_gmv
+            - paid_orders
+            - aov
+            - refund_amount
+            - net_receipts
+            - refund_intensity
+            - visitor_sessions
+            - order_conversion_rate
+          minItems: 1
+          maxItems: 8
+          uniqueItems: true
+        dimensions:
+          type: array
+          items:
+            enum:
+            - day
+            - store
+            - sku
+          uniqueItems: true
+          maxItems: 3
+        dateRange: *id008
+        comparison:
+          enum:
+          - PREVIOUS_WEEK_SAME_DAYS
+          - PREVIOUS_PERIOD
+          - NONE
+        filters:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              field:
+                const: productId
+              operator:
+                const: IN
+              values:
+                type: array
+                items: *id001
+                minItems: 1
+                maxItems: 20
+                uniqueItems: true
+            required:
+            - field
+            - operator
+            - values
+          maxItems: 1
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 1000
+      required:
+      - metricIds
+      - dimensions
+      - dateRange
+      - comparison
+      - filters
+      - limit
+      allOf:
+      - if:
+          properties:
+            dimensions:
+              contains:
+                const: sku
+        then:
+          properties:
+            metricIds:
+              items:
+                const: paid_gmv
+            dimensions:
+              contains:
+                const: store
+      - if:
+          properties:
+            filters:
+              minItems: 1
+        then:
+          properties:
+            metricIds:
+              items:
+                const: paid_gmv
+            dimensions:
+              contains:
+                const: store
+    Scope: &id009
+      type: object
+      additionalProperties: false
+      properties:
+        tenantId: *id001
+        storeIds:
+          type: array
+          items: *id001
+          minItems: 1
+          uniqueItems: true
+        authzVersion:
+          type: integer
+          minimum: 1
+      required:
+      - tenantId
+      - storeIds
+      - authzVersion
+    Report:
+      type: object
+      additionalProperties: false
+      properties:
+        reportId: *id001
+        version:
+          type: integer
+          minimum: 1
+        runId: *id001
+        title: *id007
+        status:
+          enum:
+          - SUCCEEDED
+          - PARTIAL
+        createdAt:
+          type: string
+          format: date-time
+        scope: *id009
+        dateRange: *id008
+        comparisonRange: *id008
+        datasetVersionId: *id001
+        metricManifestHash: *id007
+        claims:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              claimId: *id001
+              type:
+                enum:
+                - OBSERVATION
+                - DECOMPOSITION
+                - HYPOTHESIS
+                - LIMITATION
+                - RECOMMENDATION
+              text:
+                type: string
+                maxLength: 2000
+              evidenceRefs:
+                type: array
+                items: *id001
+                uniqueItems: true
+              numericBindings:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: false
+                  properties:
+                    evidenceId: *id001
+                    rowKey: *id007
+                    field: *id007
+                    transformId:
+                      enum:
+                      - IDENTITY
+                      - DELTA
+                      - RELATIVE_CHANGE
+                      - PP_DELTA
+                      - SHAPLEY_ORDERS
+                      - SHAPLEY_AOV
+                  required:
+                  - evidenceId
+                  - rowKey
+                  - field
+                  - transformId
+              support:
+                enum:
+                - SUPPORTED
+                - CONTRADICTED
+                - INSUFFICIENT
+            required:
+            - claimId
+            - type
+            - text
+            - evidenceRefs
+            - numericBindings
+            - support
+          minItems: 1
+        limitations:
+          type: array
+          items: *id007
+        synthetic:
+          type: boolean
+      required:
+      - reportId
+      - version
+      - runId
+      - title
+      - status
+      - createdAt
+      - scope
+      - dateRange
+      - comparisonRange
+      - datasetVersionId
+      - metricManifestHash
+      - claims
+      - limitations
+      - synthetic
+    RunEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        schemaVersion:
+          const: '1.0'
+        runId: *id001
+        sequence:
+          type: integer
+          minimum: 1
+        type:
+          enum:
+          - run.created
+          - run.state.changed
+          - plan.ready
+          - approval.required
+          - step.started
+          - step.summary
+          - evidence.ready
+          - report.ready
+          - run.completed
+          - run.failed
+          - run.cancelled
+          - access.revoked
+        occurredAt:
+          type: string
+          format: date-time
+        payload:
+          type: object
+          description: Payload varies by type; no raw private reasoning or unscoped query rows.
+      required:
+      - schemaVersion
+      - runId
+      - sequence
+      - type
+      - occurredAt
+      - payload
+    Store:
+      type: object
+      additionalProperties: false
+      properties:
+        storeId: *id001
+        name: *id007
+        platform: *id007
+      required:
+      - storeId
+      - name
+      - platform
+    Me:
+      type: object
+      additionalProperties: false
+      properties:
+        subjectId: *id001
+        tenantId: *id001
+        displayName: *id007
+        roles:
+          type: array
+          items:
+            enum:
+            - TENANT_ADMIN
+            - OPS_MANAGER
+            - STORE_OPERATOR
+            - VIEWER
+        authzVersion:
+          type: integer
+        stores:
+          type: array
+          items:
+            $ref: '#/components/schemas/Store'
+      required:
+      - subjectId
+      - tenantId
+      - displayName
+      - roles
+      - authzVersion
+      - stores
+    Quality:
+      type: object
+      additionalProperties: false
+      properties:
+        status:
+          enum:
+          - COMPLETE
+          - PARTIAL
+          - STALE
+          - INVALID
+        businessWatermark:
+          type: string
+          format: date-time
+        publishedAt:
+          type: string
+          format: date-time
+        warnings:
+          type: array
+          items: *id007
+      required:
+      - status
+      - businessWatermark
+      - publishedAt
+      - warnings
+    Metric:
+      type: object
+      additionalProperties: false
+      properties:
+        metricId:
+          enum: *id010
+        version:
+          type: integer
+          minimum: 1
+        displayName: *id007
+        unit:
+          enum:
+          - CNY_CENT
+          - COUNT
+          - RATIO
+        definition: *id007
+        supportedDimensions:
+          type: array
+          items:
+            enum:
+            - day
+            - store
+            - sku
+        requiredFacts:
+          type: array
+          items: *id007
+        zeroDenominatorPolicy:
+          enum:
+          - '0'
+          - 'NULL'
+        compilerKey: *id007
+        note: *id007
+        state:
+          const: PUBLISHED
+      required:
+      - metricId
+      - version
+      - displayName
+      - unit
+      - definition
+      - supportedDimensions
+      - requiredFacts
+      - zeroDenominatorPolicy
+      - compilerKey
+      - state
+    Cell:
+      type: object
+      additionalProperties: false
+      properties:
+        field: *id007
+        value:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?[0-9]+(\.[0-9]+)?$
+        unit:
+          enum:
+          - CNY_CENT
+          - COUNT
+          - RATIO
+          - PP
+        reason:
+          type:
+          - string
+          - 'null'
+      required:
+      - field
+      - value
+      - unit
+    ResultRow:
+      type: object
+      additionalProperties: false
+      properties:
+        rowKey: *id007
+        dimensions:
+          type: object
+          additionalProperties: *id007
+        cells:
+          type: array
+          items:
+            $ref: '#/components/schemas/Cell'
+      required:
+      - rowKey
+      - dimensions
+      - cells
+    Column:
+      type: object
+      additionalProperties: false
+      properties:
+        field: *id007
+        label: *id007
+        unit:
+          enum:
+          - CNY_CENT
+          - COUNT
+          - RATIO
+          - PP
+          - DIMENSION
+      required:
+      - field
+      - label
+      - unit
+    QueryResult:
+      type: object
+      additionalProperties: false
+      properties:
+        queryArtifactId: *id001
+        evidenceId: *id001
+        scope:
+          $ref: '#/components/schemas/Scope'
+        dateRange:
+          $ref: '#/components/schemas/DateRange'
+        comparisonRange:
+          anyOf:
+          - $ref: '#/components/schemas/DateRange'
+          - type: 'null'
+        datasetVersionId: *id001
+        metricVersions:
+          type: object
+          additionalProperties:
+            type: integer
+        quality:
+          $ref: '#/components/schemas/Quality'
+        columns:
+          type: array
+          items:
+            $ref: '#/components/schemas/Column'
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResultRow'
+        totals:
+          $ref: '#/components/schemas/ResultRow'
+        rowCount:
+          type: integer
+          minimum: 0
+        truncated:
+          type: boolean
+      required:
+      - queryArtifactId
+      - evidenceId
+      - scope
+      - dateRange
+      - comparisonRange
+      - datasetVersionId
+      - metricVersions
+      - quality
+      - columns
+      - rows
+      - totals
+      - rowCount
+      - truncated
+    Overview:
+      type: object
+      additionalProperties: false
+      properties:
+        scope:
+          $ref: '#/components/schemas/Scope'
+        dateRange:
+          $ref: '#/components/schemas/DateRange'
+        comparisonRange:
+          $ref: '#/components/schemas/DateRange'
+        datasetVersionId: *id001
+        quality:
+          $ref: '#/components/schemas/Quality'
+        totals:
+          $ref: '#/components/schemas/ResultRow'
+        baselineTotals:
+          $ref: '#/components/schemas/ResultRow'
+        trend:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResultRow'
+        stores:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResultRow'
+      required:
+      - scope
+      - dateRange
+      - comparisonRange
+      - datasetVersionId
+      - quality
+      - totals
+      - baselineTotals
+      - trend
+      - stores
+    PlanAction:
+      type: object
+      additionalProperties: false
+      properties:
+        actionId: *id001
+        toolName:
+          enum:
+          - resolve_metric
+          - inspect_data_quality
+          - query_metrics
+          - compare_segments
+          - decompose_gmv
+          - inspect_inventory_signal
+          - lookup_business_definition
+          - finalize_report
+        purpose:
+          type: string
+          maxLength: 500
+        maxCalls:
+          type: integer
+          minimum: 1
+          maximum: 12
+      required:
+      - actionId
+      - toolName
+      - purpose
+      - maxCalls
+    Plan:
+      type: object
+      additionalProperties: false
+      properties:
+        planVersion:
+          type: integer
+          minimum: 1
+        planHash: *id007
+        dateRange:
+          $ref: '#/components/schemas/DateRange'
+        scope:
+          $ref: '#/components/schemas/Scope'
+        actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlanAction'
+        maxToolCalls:
+          type: integer
+          maximum: 12
+        maxTokens:
+          type: integer
+          maximum: 30000
+        expiresAt:
+          type: string
+          format: date-time
+      required:
+      - planVersion
+      - planHash
+      - dateRange
+      - scope
+      - actions
+      - maxToolCalls
+      - maxTokens
+      - expiresAt
+    Run:
+      type: object
+      additionalProperties: false
+      properties:
+        runId: *id001
+        conversationId: *id001
+        status:
+          enum: *id011
+        runVersion:
+          type: integer
+          minimum: 1
+        question: *id007
+        scope:
+          $ref: '#/components/schemas/Scope'
+        datasetVersionId: *id001
+        metricManifestHash: *id007
+        plan:
+          anyOf:
+          - $ref: '#/components/schemas/Plan'
+          - type: 'null'
+        latestSequence:
+          type: integer
+          minimum: 0
+        eventsUrl: *id007
+        reportId:
+          type:
+          - string
+          - 'null'
+        createdAt:
+          type: string
+          format: date-time
+      required:
+      - runId
+      - conversationId
+      - status
+      - runVersion
+      - question
+      - scope
+      - datasetVersionId
+      - metricManifestHash
+      - plan
+      - latestSequence
+      - eventsUrl
+      - createdAt
+    CreateRun:
+      type: object
+      additionalProperties: false
+      properties:
+        question:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        requestedStoreIds:
+          type: array
+          items: *id001
+          minItems: 1
+          maxItems: 100
+          uniqueItems: true
+        dateRange:
+          $ref: '#/components/schemas/DateRange'
+        comparison:
+          enum:
+          - PREVIOUS_WEEK_SAME_DAYS
+          - PREVIOUS_PERIOD
+        requireApproval:
+          type: boolean
+          default: true
+      required:
+      - question
+      - requestedStoreIds
+      - dateRange
+      - comparison
+      - requireApproval
+    Approval:
+      type: object
+      additionalProperties: false
+      properties:
+        decision:
+          enum:
+          - APPROVE
+          - REJECT
+        planVersion:
+          type: integer
+          minimum: 1
+        planHash: *id007
+        expectedRunVersion:
+          type: integer
+          minimum: 1
+        comment:
+          type: string
+          maxLength: 1000
+      required:
+      - decision
+      - planVersion
+      - planHash
+      - expectedRunVersion
+    Evidence:
+      type: object
+      additionalProperties: false
+      properties:
+        evidenceId: *id001
+        runId:
+          type:
+          - string
+          - 'null'
+        kind:
+          enum:
+          - QUERY_RESULT
+          - DECOMPOSITION
+          - INVENTORY_SIGNAL
+        datasetVersionId: *id001
+        metricManifestHash: *id007
+        scope:
+          $ref: '#/components/schemas/Scope'
+        result:
+          $ref: '#/components/schemas/QueryResult'
+        sqlTemplate:
+          type:
+          - string
+          - 'null'
+        redactedParameters:
+          type: object
+        resultHash: *id007
+        durationMs:
+          type: integer
+          minimum: 0
+        createdAt:
+          type: string
+          format: date-time
+      required:
+      - evidenceId
+      - runId
+      - kind
+      - datasetVersionId
+      - metricManifestHash
+      - scope
+      - result
+      - sqlTemplate
+      - redactedParameters
+      - resultHash
+      - durationMs
+      - createdAt
+    AnomalyRuleInput:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        metricId:
+          enum:
+          - paid_gmv
+          - paid_orders
+          - refund_amount
+          - order_conversion_rate
+        storeIds:
+          type: array
+          items: *id001
+          minItems: 1
+        direction:
+          enum:
+          - UP
+          - DOWN
+        baseline:
+          const: SAME_WEEKDAY_MEDIAN_8
+        relativeThreshold:
+          type:
+          - string
+          - 'null'
+        absoluteThreshold:
+          type: string
+        unit:
+          enum:
+          - CNY_CENT
+          - COUNT
+          - PP
+        cooldownHours:
+          type: integer
+          minimum: 1
+          maximum: 168
+        enabled:
+          type: boolean
+      required:
+      - name
+      - metricId
+      - storeIds
+      - direction
+      - baseline
+      - relativeThreshold
+      - absoluteThreshold
+      - unit
+      - cooldownHours
+      - enabled
+    AnomalyRule:
+      type: object
+      additionalProperties: false
+      properties:
+        ruleId: *id001
+        version:
+          type: integer
+          minimum: 1
+        definition:
+          $ref: '#/components/schemas/AnomalyRuleInput'
+      required:
+      - ruleId
+      - version
+      - definition
+    Anomaly:
+      type: object
+      additionalProperties: false
+      properties:
+        anomalyId: *id001
+        ruleId: *id001
+        ruleVersion:
+          type: integer
+        status:
+          enum:
+          - OPEN
+          - ACKNOWLEDGED
+          - RESOLVED
+          - SUPPRESSED
+        severity:
+          enum:
+          - INFO
+          - WARNING
+          - CRITICAL
+        scope:
+          $ref: '#/components/schemas/Scope'
+        metricId:
+          enum: *id010
+        window:
+          $ref: '#/components/schemas/DateRange'
+        referenceDates:
+          type: array
+          items: *id002
+        current:
+          $ref: '#/components/schemas/Cell'
+        baseline:
+          $ref: '#/components/schemas/Cell'
+        datasetVersionId: *id001
+        reason: *id007
+      required:
+      - anomalyId
+      - ruleId
+      - ruleVersion
+      - status
+      - severity
+      - scope
+      - metricId
+      - window
+      - referenceDates
+      - current
+      - baseline
+      - datasetVersionId
+      - reason
+    Dataset:
+      type: object
+      additionalProperties: false
+      properties:
+        datasetVersionId: *id001
+        status:
+          enum:
+          - DRAFT
+          - VALIDATING
+          - PUBLISHED
+          - REJECTED
+          - RETIRED
+        coverage:
+          $ref: '#/components/schemas/DateRange'
+        quality:
+          $ref: '#/components/schemas/Quality'
+        tables:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              name: *id007
+              rowCount:
+                type: integer
+                minimum: 0
+            required:
+            - name
+            - rowCount
+      required:
+      - datasetVersionId
+      - status
+      - coverage
+      - quality
+      - tables
+    Ingestion:
+      type: object
+      additionalProperties: false
+      properties:
+        jobId: *id001
+        version:
+          type: integer
+          minimum: 1
+        status:
+          enum:
+          - UPLOADED
+          - VALIDATING
+          - READY_TO_PUBLISH
+          - PUBLISHED
+          - REJECTED
+          - FAILED
+        datasetVersionId: *id001
+        filesValidated:
+          type: integer
+          minimum: 0
+          maximum: 8
+        errors:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              file: *id007
+              line:
+                type: integer
+                minimum: 0
+              code: *id007
+              message: *id007
+            required:
+            - file
+            - line
+            - code
+            - message
+      required:
+      - jobId
+      - version
+      - status
+      - datasetVersionId
+      - filesValidated
+      - errors

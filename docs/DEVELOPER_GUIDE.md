@@ -4,6 +4,8 @@
 
 欢迎参与 DataAgent 项目的开发！本文档将帮助您了解如何为项目做出贡献。
 
+Biz Sentinel 是基于 DataAgent 的个人开发项目，只使用 `main` 分支，直接在该分支开发、验证、提交和推送。仓库约定和上游同步方式见 [Biz Sentinel 二次开发指南](BIZ_SENTINEL_DEVELOPMENT.md)。
+
 ## 🚀 开发环境搭建
 
 ### 前置要求
@@ -20,8 +22,8 @@
 ### 克隆项目
 
 ```bash
-git clone https://github.com/spring-ai-alibaba/DataAgent.git
-cd DataAgent
+git clone --branch main https://github.com/ZimaAI/biz-sentinel.git
+cd biz-sentinel
 ```
 
 ### 后端开发环境

@@ -1,5 +1,11 @@
 中文 | [English](./CONTRIBUTING-en.md)
 
+## Biz Sentinel 个人开发约定
+
+本仓库只使用 `main` 分支。日常开发直接在 `main` 上修改、验证、提交并推送到 `origin/main`，无需创建功能分支或 PR。具体命令和上游同步步骤见 [Biz Sentinel 二次开发指南](docs/BIZ_SENTINEL_DEVELOPMENT.md)。
+
+以下保留的社区贡献流程仅用于向上游 Spring AI Alibaba DataAgent 贡献代码，不适用于本仓库的个人开发流程。
+
 ## 如何贡献
 
 ## 感谢你为 Spring AI Alibaba-DataAgent 贡献！

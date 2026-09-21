@@ -1,0 +1,2 @@
+tenant_id,dataset_version_id,store_id,name,platform,business_timezone
+t_other,demo_20260921_v1,s1,隔离租户演示店,DEMO,Asia/Shanghai

@@ -1,0 +1,17 @@
+{
+  "metricIds": [
+    "paid_gmv",
+    "paid_orders",
+    "aov"
+  ],
+  "dimensions": [
+    "store"
+  ],
+  "dateRange": {
+    "start": "2026-09-20",
+    "endExclusive": "2026-09-21"
+  },
+  "comparison": "PREVIOUS_WEEK_SAME_DAYS",
+  "filters": [],
+  "limit": 100
+}

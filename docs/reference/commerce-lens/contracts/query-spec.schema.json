@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://commercelens.invalid/schemas/query-spec",
+  "title": "Commerce QuerySpec (target contract)",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "metricIds": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "paid_gmv",
+          "paid_orders",
+          "aov",
+          "refund_amount",
+          "net_receipts",
+          "refund_intensity",
+          "visitor_sessions",
+          "order_conversion_rate"
+        ]
+      },
+      "minItems": 1,
+      "maxItems": 8,
+      "uniqueItems": true
+    },
+    "dimensions": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "day",
+          "store",
+          "sku"
+        ]
+      },
+      "uniqueItems": true,
+      "maxItems": 3
+    },
+    "dateRange": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "start": {
+          "type": "string",
+          "format": "date"
+        },
+        "endExclusive": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      "required": [
+        "start",
+        "endExclusive"
+      ]
+    },
+    "comparison": {
+      "enum": [
+        "PREVIOUS_WEEK_SAME_DAYS",
+        "PREVIOUS_PERIOD",
+        "NONE"
+      ]
+    },
+    "filters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "field": {
+            "const": "productId"
+          },
+          "operator": {
+            "const": "IN"
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 96
+            },
+            "minItems": 1,
+            "maxItems": 20,
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "field",
+          "operator",
+          "values"
+        ]
+      },
+      "maxItems": 1
+    },
+    "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000
+    }
+  },
+  "required": [
+    "metricIds",
+    "dimensions",
+    "dateRange",
+    "comparison",
+    "filters",
+    "limit"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "dimensions": {
+            "contains": {
+              "const": "sku"
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "metricIds": {
+            "items": {
+              "const": "paid_gmv"
+            }
+          },
+          "dimensions": {
+            "contains": {
+              "const": "store"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "filters": {
+            "minItems": 1
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "metricIds": {
+            "items": {
+              "const": "paid_gmv"
+            }
+          },
+          "dimensions": {
+            "contains": {
+              "const": "store"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

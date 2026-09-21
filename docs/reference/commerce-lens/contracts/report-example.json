@@ -1,0 +1,58 @@
+{
+  "reportId": "report_demo_001",
+  "version": 1,
+  "runId": "run_demo_001",
+  "title": "支付 GMV 变化诊断（合成示例）",
+  "status": "SUCCEEDED",
+  "createdAt": "2026-09-21T00:44:00Z",
+  "scope": {
+    "tenantId": "t_demo",
+    "storeIds": [
+      "s1",
+      "s2",
+      "s3"
+    ],
+    "authzVersion": 1
+  },
+  "dateRange": {
+    "start": "2026-09-20",
+    "endExclusive": "2026-09-21"
+  },
+  "comparisonRange": {
+    "start": "2026-09-13",
+    "endExclusive": "2026-09-14"
+  },
+  "datasetVersionId": "demo_20260921_v1",
+  "metricManifestHash": "SYNTHETIC_EXAMPLE_NOT_A_REAL_HASH",
+  "claims": [
+    {
+      "claimId": "c1",
+      "type": "OBSERVATION",
+      "text": "合成数据的支付 GMV 为 486,200.00 元。",
+      "evidenceRefs": [
+        "E-001"
+      ],
+      "numericBindings": [
+        {
+          "evidenceId": "E-001",
+          "rowKey": "all",
+          "field": "paid_gmv",
+          "transformId": "IDENTITY"
+        }
+      ],
+      "support": "SUPPORTED"
+    },
+    {
+      "claimId": "c2",
+      "type": "LIMITATION",
+      "text": "不具备成本数据，不能计算利润。",
+      "evidenceRefs": [],
+      "numericBindings": [],
+      "support": "SUPPORTED"
+    }
+  ],
+  "limitations": [
+    "示例 JSON 不是后端真实报告；哈希为醒目占位标记。"
+  ],
+  "synthetic": true
+}

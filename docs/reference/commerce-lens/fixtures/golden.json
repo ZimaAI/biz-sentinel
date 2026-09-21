@@ -1,0 +1,32 @@
+{
+  "synthetic": true,
+  "tenantId": "t_demo",
+  "datasetVersionId": "demo_20260921_v1",
+  "currentDate": "2026-09-20",
+  "baselineDate": "2026-09-13",
+  "current": {
+    "paidGmvCents": "48620000",
+    "paidOrders": 1842,
+    "refundCents": "2686000",
+    "sessions": 46050
+  },
+  "baseline": {
+    "paidGmvCents": "60000000",
+    "paidOrders": 2240,
+    "refundCents": "2100000",
+    "sessions": 50000
+  },
+  "expected": {
+    "gmvDeltaCents": "-11380000",
+    "s1DeltaCents": "-10500000",
+    "s2DeltaCents": "-1000000",
+    "s3DeltaCents": "120000",
+    "s1HotSkuDeltaCents": "-9900000",
+    "currentNetReceiptsCents": "45934000",
+    "baselineNetReceiptsCents": "57900000",
+    "currentConversionRatio": "0.04",
+    "baselineConversionRatio": "0.0448",
+    "s1OrderContributionCents": "-10500000",
+    "s1AovContributionCents": "0"
+  }
+}

@@ -1,0 +1,5 @@
+tenant_id,dataset_version_id,store_id,order_id,item_id,product_id,quantity,allocated_paid_cents
+t_other,demo_20260921_v1,s1,O20260913000001,1,p1,1,4999950
+t_other,demo_20260921_v1,s1,O20260913000002,1,p2,1,4999950
+t_other,demo_20260921_v1,s1,O20260920000001,1,p1,1,4999950
+t_other,demo_20260921_v1,s1,O20260920000002,1,p2,1,4999950

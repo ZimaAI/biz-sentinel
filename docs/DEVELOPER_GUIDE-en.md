@@ -4,6 +4,8 @@
 
 Welcome to participate in the development of the DataAgent project! This document will help you understand how to contribute to the project.
 
+Biz Sentinel is a personal project based on DataAgent and uses only `main`. Develop, validate, commit, and push directly on that branch. See the [Biz Sentinel development guide](BIZ_SENTINEL_DEVELOPMENT.md) for repository conventions and upstream synchronization.
+
 ## Development Environment Setup
 
 ### Prerequisites
@@ -20,8 +22,8 @@ Welcome to participate in the development of the DataAgent project! This documen
 ### Clone Project
 
 ```bash
-git clone https://github.com/spring-ai-alibaba/DataAgent.git
-cd DataAgent
+git clone --branch main https://github.com/ZimaAI/biz-sentinel.git
+cd biz-sentinel
 ```
 
 ### Backend Development Environment

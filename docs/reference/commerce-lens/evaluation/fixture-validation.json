@@ -1,0 +1,524 @@
+{
+  "kind": "synthetic-data-and-arithmetic",
+  "passed": 94,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "t_demo/stores: checksum",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_demo/stores: row count",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_demo/stores: tenant/version",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_demo/products: checksum",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_demo/products: row count",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_demo/products: tenant/version",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_demo/orders: checksum",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_demo/orders: row count",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_demo/orders: tenant/version",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_demo/order_items: checksum",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_demo/order_items: row count",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_demo/order_items: tenant/version",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_demo/payments: checksum",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_demo/payments: row count",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_demo/payments: tenant/version",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_demo/refunds: checksum",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_demo/refunds: row count",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_demo/refunds: tenant/version",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_demo/traffic_daily: checksum",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_demo/traffic_daily: row count",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_demo/traffic_daily: tenant/version",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_demo/inventory_daily: checksum",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_demo/inventory_daily: row count",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_demo/inventory_daily: tenant/version",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_demo: 8 canonical files",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_demo: store references",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_demo: order composite uniqueness",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_demo: one canonical payment/order",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_demo: payment references/amounts",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_demo: items reconcile all orders",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_demo: cumulative refund capped",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_demo: daily source coverage",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_demo: inventory bounds",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_demo: immutable per-table composite IDs",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_other/stores: checksum",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_other/stores: row count",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_other/stores: tenant/version",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_other/products: checksum",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_other/products: row count",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_other/products: tenant/version",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_other/orders: checksum",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_other/orders: row count",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_other/orders: tenant/version",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_other/order_items: checksum",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_other/order_items: row count",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_other/order_items: tenant/version",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_other/payments: checksum",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_other/payments: row count",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_other/payments: tenant/version",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_other/refunds: checksum",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_other/refunds: row count",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_other/refunds: tenant/version",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_other/traffic_daily: checksum",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_other/traffic_daily: row count",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_other/traffic_daily: tenant/version",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_other/inventory_daily: checksum",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_other/inventory_daily: row count",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_other/inventory_daily: tenant/version",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_other: 8 canonical files",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_other: store references",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_other: order composite uniqueness",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_other: one canonical payment/order",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_other: payment references/amounts",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_other: items reconcile all orders",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_other: cumulative refund capped",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_other: daily source coverage",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_other: inventory bounds",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "t_other: immutable per-table composite IDs",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "all 171 UI daily records equal independent CSV aggregates",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "golden current GMV fixed 486200.00 CNY",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "golden baseline GMV fixed 600000.00 CNY",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "current orders",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "current refund",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "current sessions",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "net receipts correct",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "aggregate order conversion ratios",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "refund intensity not cohort rate",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "store contributions exact",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "contributions reconcile total",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "core SKU delta -99000.00 CNY",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "symmetric decomposition conservation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "closed historical orders counted",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "refund uses success time not pay time",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "fixture contains repeated external IDs across tenants",
+      "passed": true,
+      "detail": "Presence of collision fixtures does not test server authorization."
+    },
+    {
+      "name": "fixed Shanghai left-inclusive right-exclusive boundaries",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "fan-out counterexample detected",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "independent fact aggregation avoids fan-out",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "zero denominator yields NULL not zero",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "period refund intensity can exceed 100%",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "net receipts may be negative",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "weighted ratios not average of ratios",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "offset contributions reconcile with positive store",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "8 full weekday references exist",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "MAD zero fixture present",
+      "passed": true,
+      "detail": ""
+    }
+  ],
+  "notTested": [
+    "Java",
+    "MySQL",
+    "live platform",
+    "authorization middleware",
+    "real LLM"
+  ],
+  "rowCounts": {
+    "t_demo": {
+      "stores": 3,
+      "products": 6,
+      "orders": 127282,
+      "order_items": 127282,
+      "payments": 127282,
+      "refunds": 6840,
+      "traffic_daily": 171,
+      "inventory_daily": 342
+    },
+    "t_other": {
+      "stores": 1,
+      "products": 2,
+      "orders": 4,
+      "order_items": 4,
+      "payments": 4,
+      "refunds": 0,
+      "traffic_daily": 2,
+      "inventory_daily": 4
+    }
+  },
+  "current": {
+    "gmv": 48620000,
+    "orders": 1842,
+    "refund": 2686000,
+    "sessions": 46050,
+    "hot": 31472675
+  },
+  "baseline": {
+    "gmv": 60000000,
+    "orders": 2240,
+    "refund": 2100000,
+    "sessions": 50000,
+    "hot": 42000000
+  },
+  "decompositionCents": {
+    "orders": "-10583006.437102528307740034124398945246",
+    "aov": "-796993.56289747169225996587560105475425"
+  }
+}

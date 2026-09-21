@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "runId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 96
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "type": {
+      "enum": [
+        "run.created",
+        "run.state.changed",
+        "plan.ready",
+        "approval.required",
+        "step.started",
+        "step.summary",
+        "evidence.ready",
+        "report.ready",
+        "run.completed",
+        "run.failed",
+        "run.cancelled",
+        "access.revoked"
+      ]
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "payload": {
+      "type": "object",
+      "description": "Payload varies by type; no raw private reasoning or unscoped query rows."
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "runId",
+    "sequence",
+    "type",
+    "occurredAt",
+    "payload"
+  ]
+}

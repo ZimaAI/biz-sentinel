@@ -1,0 +1,726 @@
+{
+  "kind": "static-contract-checks",
+  "passed": 178,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "query-spec.schema meta-schema valid",
+      "passed": true
+    },
+    {
+      "name": "run-event.schema meta-schema valid",
+      "passed": true
+    },
+    {
+      "name": "report.schema meta-schema valid",
+      "passed": true
+    },
+    {
+      "name": "OpenAPI 3.1.0",
+      "passed": true
+    },
+    {
+      "name": "get /me parameter uniqueness",
+      "passed": true
+    },
+    {
+      "name": "get /overview parameter uniqueness",
+      "passed": true
+    },
+    {
+      "name": "get /metrics parameter uniqueness",
+      "passed": true
+    },
+    {
+      "name": "post /queries parameter uniqueness",
+      "passed": true
+    },
+    {
+      "name": "queryMetrics CSRF header",
+      "passed": true
+    },
+    {
+      "name": "post /runs parameter uniqueness",
+      "passed": true
+    },
+    {
+      "name": "createRun CSRF header",
+      "passed": true
+    },
+    {
+      "name": "get /runs parameter uniqueness",
+      "passed": true
+    },
+    {
+      "name": "get /runs/{runId} parameter uniqueness",
+      "passed": true
+    },
+    {
+      "name": "/runs/{runId} runId required",
+      "passed": true
+    },
+    {
+      "name": "post /runs/{runId}/approval parameter uniqueness",
+      "passed": true
+    },
+    {
+      "name": "/runs/{runId}/approval runId required",
+      "passed": true
+    },
+    {
+      "name": "approveRun CSRF header",
+      "passed": true
+    },
+    {
+      "name": "post /runs/{runId}/cancel parameter uniqueness",
+      "passed": true
+    },
+    {
+      "name": "/runs/{runId}/cancel runId required",
+      "passed": true
+    },
+    {
+      "name": "cancelRun CSRF header",
+      "passed": true
+    },
+    {
+      "name": "get /runs/{runId}/events parameter uniqueness",
+      "passed": true
+    },
+    {
+      "name": "/runs/{runId}/events runId required",
+      "passed": true
+    },
+    {
+      "name": "get /evidence/{evidenceId} parameter uniqueness",
+      "passed": true
+    },
+    {
+      "name": "/evidence/{evidenceId} evidenceId required",
+      "passed": true
+    },
+    {
+      "name": "get /reports parameter uniqueness",
+      "passed": true
+    },
+    {
+      "name": "get /reports/{reportId} parameter uniqueness",
+      "passed": true
+    },
+    {
+      "name": "/reports/{reportId} reportId required",
+      "passed": true
+    },
+    {
+      "name": "get /reports/{reportId}/export parameter uniqueness",
+      "passed": true
+    },
+    {
+      "name": "/reports/{reportId}/export reportId required",
+      "passed": true
+    },
+    {
+      "name": "get /anomaly-rules parameter uniqueness",
+      "passed": true
+    },
+    {
+      "name": "post /anomaly-rules parameter uniqueness",
+      "passed": true
+    },
+    {
+      "name": "createRule CSRF header",
+      "passed": true
+    },
+    {
+      "name": "patch /anomaly-rules/{ruleId} parameter uniqueness",
+      "passed": true
+    },
+    {
+      "name": "/anomaly-rules/{ruleId} ruleId required",
+      "passed": true
+    },
+    {
+      "name": "updateRule CSRF header",
+      "passed": true
+    },
+    {
+      "name": "get /anomalies parameter uniqueness",
+      "passed": true
+    },
+    {
+      "name": "post /anomalies/{anomalyId}/acknowledge parameter uniqueness",
+      "passed": true
+    },
+    {
+      "name": "/anomalies/{anomalyId}/acknowledge anomalyId required",
+      "passed": true
+    },
+    {
+      "name": "acknowledgeAnomaly CSRF header",
+      "passed": true
+    },
+    {
+      "name": "get /datasets parameter uniqueness",
+      "passed": true
+    },
+    {
+      "name": "post /ingestions parameter uniqueness",
+      "passed": true
+    },
+    {
+      "name": "createIngestion CSRF header",
+      "passed": true
+    },
+    {
+      "name": "get /ingestions/{jobId} parameter uniqueness",
+      "passed": true
+    },
+    {
+      "name": "/ingestions/{jobId} jobId required",
+      "passed": true
+    },
+    {
+      "name": "post /ingestions/{jobId}/publish parameter uniqueness",
+      "passed": true
+    },
+    {
+      "name": "/ingestions/{jobId}/publish jobId required",
+      "passed": true
+    },
+    {
+      "name": "publishIngestion CSRF header",
+      "passed": true
+    },
+    {
+      "name": "23 unique operation IDs",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Me",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Error",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Overview",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Error",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Metric",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Error",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/QueryResult",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Error",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/QuerySpec",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Run",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Error",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/CreateRun",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Run",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Error",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Run",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Error",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Run",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Error",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Approval",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Run",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Error",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Error",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Evidence",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Error",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Report",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Error",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Report",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Error",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Error",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/AnomalyRule",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Error",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/AnomalyRule",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Error",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/AnomalyRuleInput",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/AnomalyRule",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Error",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/AnomalyRuleInput",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Anomaly",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Error",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Anomaly",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Error",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Dataset",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Error",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Ingestion",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Error",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Ingestion",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Error",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Dataset",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Error",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Store",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Cell",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Scope",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/DateRange",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/DateRange",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Quality",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Column",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/ResultRow",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/ResultRow",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Scope",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/DateRange",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/DateRange",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Quality",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/ResultRow",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/ResultRow",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/ResultRow",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/ResultRow",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/DateRange",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Scope",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/PlanAction",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Scope",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Plan",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/DateRange",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Scope",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/QueryResult",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/AnomalyRuleInput",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Scope",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/DateRange",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Cell",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Cell",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/DateRange",
+      "passed": true
+    },
+    {
+      "name": "local ref #/components/schemas/Quality",
+      "passed": true
+    },
+    {
+      "name": "Error valid schema",
+      "passed": true
+    },
+    {
+      "name": "DateRange valid schema",
+      "passed": true
+    },
+    {
+      "name": "QuerySpec valid schema",
+      "passed": true
+    },
+    {
+      "name": "Scope valid schema",
+      "passed": true
+    },
+    {
+      "name": "Report valid schema",
+      "passed": true
+    },
+    {
+      "name": "RunEvent valid schema",
+      "passed": true
+    },
+    {
+      "name": "Store valid schema",
+      "passed": true
+    },
+    {
+      "name": "Me valid schema",
+      "passed": true
+    },
+    {
+      "name": "Quality valid schema",
+      "passed": true
+    },
+    {
+      "name": "Metric valid schema",
+      "passed": true
+    },
+    {
+      "name": "Cell valid schema",
+      "passed": true
+    },
+    {
+      "name": "ResultRow valid schema",
+      "passed": true
+    },
+    {
+      "name": "Column valid schema",
+      "passed": true
+    },
+    {
+      "name": "QueryResult valid schema",
+      "passed": true
+    },
+    {
+      "name": "Overview valid schema",
+      "passed": true
+    },
+    {
+      "name": "PlanAction valid schema",
+      "passed": true
+    },
+    {
+      "name": "Plan valid schema",
+      "passed": true
+    },
+    {
+      "name": "Run valid schema",
+      "passed": true
+    },
+    {
+      "name": "CreateRun valid schema",
+      "passed": true
+    },
+    {
+      "name": "Approval valid schema",
+      "passed": true
+    },
+    {
+      "name": "Evidence valid schema",
+      "passed": true
+    },
+    {
+      "name": "AnomalyRuleInput valid schema",
+      "passed": true
+    },
+    {
+      "name": "AnomalyRule valid schema",
+      "passed": true
+    },
+    {
+      "name": "Anomaly valid schema",
+      "passed": true
+    },
+    {
+      "name": "Dataset valid schema",
+      "passed": true
+    },
+    {
+      "name": "Ingestion valid schema",
+      "passed": true
+    },
+    {
+      "name": "paid_gmv definition valid",
+      "passed": true
+    },
+    {
+      "name": "paid_orders definition valid",
+      "passed": true
+    },
+    {
+      "name": "aov definition valid",
+      "passed": true
+    },
+    {
+      "name": "refund_amount definition valid",
+      "passed": true
+    },
+    {
+      "name": "net_receipts definition valid",
+      "passed": true
+    },
+    {
+      "name": "refund_intensity definition valid",
+      "passed": true
+    },
+    {
+      "name": "visitor_sessions definition valid",
+      "passed": true
+    },
+    {
+      "name": "order_conversion_rate definition valid",
+      "passed": true
+    },
+    {
+      "name": "query example valid",
+      "passed": true
+    },
+    {
+      "name": "arbitrary SQL rejected by JSON Schema",
+      "passed": true
+    },
+    {
+      "name": "client tenant inside QuerySpec rejected by JSON Schema",
+      "passed": true
+    },
+    {
+      "name": "unknown metric rejected by JSON Schema",
+      "passed": true
+    },
+    {
+      "name": "SKU refund rejected by JSON Schema",
+      "passed": true
+    },
+    {
+      "name": "SKU without store grain rejected by JSON Schema",
+      "passed": true
+    },
+    {
+      "name": "duplicate metrics rejected by JSON Schema",
+      "passed": true
+    },
+    {
+      "name": "excess rows rejected by JSON Schema",
+      "passed": true
+    },
+    {
+      "name": "invalid date rejected by JSON Schema",
+      "passed": true
+    },
+    {
+      "name": "product filter used with refunds rejected by JSON Schema",
+      "passed": true
+    },
+    {
+      "name": "supported SKU GMV valid",
+      "passed": true
+    },
+    {
+      "name": "report-example.json valid",
+      "passed": true
+    },
+    {
+      "name": "run-event-example.json valid",
+      "passed": true
+    },
+    {
+      "name": "8 business table DDL declarations",
+      "passed": true
+    },
+    {
+      "name": "15 management table DDL declarations",
+      "passed": true
+    }
+  ],
+  "notTested": [
+    "OpenAPI server conformance",
+    "MySQL DDL execution",
+    "Nuxt typecheck",
+    "Java compile",
+    "runtime permission enforcement"
+  ]
+}

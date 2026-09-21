@@ -1,0 +1,163 @@
+{
+  "kind": "offline-prototype-browser",
+  "passed": 36,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "overview GMV from fixture",
+      "passed": true
+    },
+    {
+      "name": "overview net receipts",
+      "passed": true
+    },
+    {
+      "name": "scope filters GMV",
+      "passed": true
+    },
+    {
+      "name": "7-day aggregation differs from one day",
+      "passed": true
+    },
+    {
+      "name": "chart can switch measure",
+      "passed": true
+    },
+    {
+      "name": "state loading hides business KPI",
+      "passed": true
+    },
+    {
+      "name": "state empty hides business KPI",
+      "passed": true
+    },
+    {
+      "name": "state error hides business KPI",
+      "passed": true
+    },
+    {
+      "name": "state forbidden hides business KPI",
+      "passed": true
+    },
+    {
+      "name": "missing refunds do not become 0",
+      "passed": true
+    },
+    {
+      "name": "plan requires explicit approval",
+      "passed": true
+    },
+    {
+      "name": "approval scope modal visible",
+      "passed": true
+    },
+    {
+      "name": "6 simulated steps complete",
+      "passed": true
+    },
+    {
+      "name": "inventory evidence SKU amounts correct",
+      "passed": true
+    },
+    {
+      "name": "SQL template is explicitly not executed",
+      "passed": true
+    },
+    {
+      "name": "Escape closes evidence",
+      "passed": true
+    },
+    {
+      "name": "report scope frozen when global filter changes",
+      "passed": true
+    },
+    {
+      "name": "Markdown export preserves actual figures",
+      "passed": true
+    },
+    {
+      "name": "metric search filters rows",
+      "passed": true
+    },
+    {
+      "name": "metric boundary visible",
+      "passed": true
+    },
+    {
+      "name": "8 CSV table rows shown",
+      "passed": true
+    },
+    {
+      "name": "import not falsely declared connected",
+      "passed": true
+    },
+    {
+      "name": "invalid rule value rejected",
+      "passed": true
+    },
+    {
+      "name": "rule change affects preview",
+      "passed": true
+    },
+    {
+      "name": "unsupported SKU refund refused",
+      "passed": true
+    },
+    {
+      "name": "ambiguous sales asks clarification",
+      "passed": true
+    },
+    {
+      "name": "cancel stops simulation",
+      "passed": true
+    },
+    {
+      "name": "audit displays simulated events",
+      "passed": true
+    },
+    {
+      "name": "overview no horizontal viewport overflow at 1440",
+      "passed": true
+    },
+    {
+      "name": "overview no horizontal viewport overflow at 1024",
+      "passed": true
+    },
+    {
+      "name": "overview no horizontal viewport overflow at 800",
+      "passed": true
+    },
+    {
+      "name": "overview no horizontal viewport overflow at 390",
+      "passed": true
+    },
+    {
+      "name": "mobile navigation opens",
+      "passed": true
+    },
+    {
+      "name": "mobile navigation selects page",
+      "passed": true
+    },
+    {
+      "name": "mobile navigation closes after route selection",
+      "passed": true
+    },
+    {
+      "name": "no unhandled browser JavaScript errors",
+      "passed": true
+    }
+  ],
+  "pageErrors": [],
+  "browser": "installed Chromium via Playwright",
+  "loadMethod": "page.set_content(single_file_html)",
+  "navigationLimit": "Environment blocks file:// and localhost navigation with ERR_BLOCKED_BY_ADMINISTRATOR; file opening and HTTP delivery were not validated. All inline JS/CSS DOM interactions rendered using set_content.",
+  "notTested": [
+    "real API",
+    "real SSE",
+    "live model",
+    "Nuxt build",
+    "actual access control",
+    "physical device"
+  ]
+}

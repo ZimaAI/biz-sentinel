@@ -1,0 +1,7 @@
+tenant_id,dataset_version_id,store_id,product_id,sku_code,name,category
+t_demo,demo_20260921_v1,s1,p1,S1-001,轻享保温杯 · 雾白,日用生活
+t_demo,demo_20260921_v1,s1,p2,S1-002,轻享保温杯 · 岩灰,日用生活
+t_demo,demo_20260921_v1,s2,p1,S2-001,轻量通勤包 · 经典,日用生活
+t_demo,demo_20260921_v1,s2,p2,S2-002,轻量通勤包 · 旅行,日用生活
+t_demo,demo_20260921_v1,s3,p1,S3-001,旅行收纳组 · Pro,日用生活
+t_demo,demo_20260921_v1,s3,p2,S3-002,旅行收纳组 · Lite,日用生活

@@ -52,38 +52,20 @@ pnpm build
 - **生成文档**: 运行 `pnpm gen:ctx` 自动提取 JSDoc/TSDoc 并生成模块 `README.md`。
 - **规范**: 开发者需在代码中编写标准的 JSDoc 注释，详情请参考 [docs/CONTEXT_GOVERNANCE.md](./docs/CONTEXT_GOVERNANCE.md)。
 
-## 🔄 Git 工作流与 Rebase 规范
+## 🔄 Git 工作流
 
-本项目使用 **Rebase** 模式管理 Git 提交，以保持提交历史的整洁线性。
+Biz Sentinel 是个人开发项目，前后端统一使用 `main` 分支。开发前同步主分支，修改并验证后直接提交和推送：
 
-### 详细 Rebase 步骤：
+```bash
+git switch main
+git pull --ff-only origin main
+# 修改代码并完成相关验证
+git add <本次修改的文件>
+git commit -m "feat(frontend): describe your change"
+git push origin main
+```
 
-1. **从基础分支拉取最新代码**:
-   ```bash
-   git checkout refactor/fronted-ui
-   git pull origin refactor/fronted-ui
-   ```
-
-2. **切换回开发分支**:
-   ```bash
-   git checkout feature/your-feature-name
-   ```
-
-3. **执行 Rebase**:
-   ```bash
-   git rebase refactor/fronted-ui
-   ```
-   *如果出现冲突，请手动解决冲突后执行：*
-   ```bash
-   git add .
-   git rebase --continue
-   ```
-
-4. **推送到远程仓库**:
-   *由于 Rebase 会改变提交历史，推送时需要使用强制推送 (Force Push)：*
-   ```bash
-   git push origin feature/your-feature-name --force
-   ```
+仓库约定和上游同步步骤见 [Biz Sentinel 二次开发指南](../docs/BIZ_SENTINEL_DEVELOPMENT.md)。
 
 ## 📝 开发规范摘要
 

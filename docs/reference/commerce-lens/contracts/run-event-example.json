@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "1.0",
+  "runId": "run_demo_001",
+  "sequence": 17,
+  "type": "evidence.ready",
+  "occurredAt": "2026-09-21T00:43:00Z",
+  "payload": {
+    "evidenceId": "E-001"
+  }
+}

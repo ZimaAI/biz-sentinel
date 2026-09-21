@@ -1,0 +1,4 @@
+tenant_id,dataset_version_id,store_id,name,platform,business_timezone
+t_demo,demo_20260921_v1,s1,天猫旗舰店,TMALL,Asia/Shanghai
+t_demo,demo_20260921_v1,s2,抖音自营店,DOUYIN,Asia/Shanghai
+t_demo,demo_20260921_v1,s3,京东专卖店,JD,Asia/Shanghai

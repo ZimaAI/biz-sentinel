@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "1.0",
+  "tenantId": "t_other",
+  "datasetVersionId": "demo_20260921_v1",
+  "synthetic": true,
+  "currency": "CNY",
+  "timezone": "Asia/Shanghai",
+  "coverage": {
+    "start": "2026-09-13",
+    "endExclusive": "2026-09-21",
+    "completeBusinessDates": [
+      "2026-09-13",
+      "2026-09-20"
+    ]
+  },
+  "businessWatermark": "2026-09-21T00:00:00+08:00",
+  "publishedAt": "2026-09-21T08:40:00+08:00",
+  "source": "deterministic synthetic generator",
+  "files": [
+    {
+      "name": "stores.csv",
+      "rows": 1,
+      "sha256": "74455743fe901cc51cd81ee2b96f9cf3950082b3db1c3539ad56a992199a9efc"
+    },
+    {
+      "name": "products.csv",
+      "rows": 2,
+      "sha256": "b66c2235dfa98ca9f9b89023bf6afb956a900701f19a15e3c2d2f63aa430eb48"
+    },
+    {
+      "name": "orders.csv",
+      "rows": 4,
+      "sha256": "38a9e0dd4f76c6d8deaeb722f86c7b03333c50f2f2e554ee211a071ef643567d"
+    },
+    {
+      "name": "order_items.csv",
+      "rows": 4,
+      "sha256": "7155ca9f7fb239661a7d3e64663c912e051eb172d6a7b18a92699d5abb710287"
+    },
+    {
+      "name": "payments.csv",
+      "rows": 4,
+      "sha256": "ffa60b8ca632fc9b75c894bec96da43ffbbe4d795361b9b67e212099e233c8c7"
+    },
+    {
+      "name": "refunds.csv",
+      "rows": 0,
+      "sha256": "efd6ca298adf83ebb4ffceb801cdf4e4468b5e81bb172ddd89ae920d4e0c4d63"
+    },
+    {
+      "name": "traffic_daily.csv",
+      "rows": 2,
+      "sha256": "dcec1d9f6470cae2a999d5d3bf938433007c509ac62b648aca0bfe0328ab432a"
+    },
+    {
+      "name": "inventory_daily.csv",
+      "rows": 4,
+      "sha256": "b2d5b5df69544bb2a1ffe6f4e9ffb4bdd2889352b87775a1cc9f6796ef05e606"
+    }
+  ]
+}

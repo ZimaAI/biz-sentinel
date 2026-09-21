@@ -1,0 +1,223 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://commercelens.invalid/schemas/report",
+  "title": "Structured diagnostic report",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "reportId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 96
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "runId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 96
+    },
+    "title": {
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "SUCCEEDED",
+        "PARTIAL"
+      ]
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tenantId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 96
+        },
+        "storeIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 96
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "authzVersion": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "tenantId",
+        "storeIds",
+        "authzVersion"
+      ]
+    },
+    "dateRange": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "start": {
+          "type": "string",
+          "format": "date"
+        },
+        "endExclusive": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      "required": [
+        "start",
+        "endExclusive"
+      ]
+    },
+    "comparisonRange": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "start": {
+          "type": "string",
+          "format": "date"
+        },
+        "endExclusive": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      "required": [
+        "start",
+        "endExclusive"
+      ]
+    },
+    "datasetVersionId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 96
+    },
+    "metricManifestHash": {
+      "type": "string"
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "claimId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 96
+          },
+          "type": {
+            "enum": [
+              "OBSERVATION",
+              "DECOMPOSITION",
+              "HYPOTHESIS",
+              "LIMITATION",
+              "RECOMMENDATION"
+            ]
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "evidenceRefs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 96
+            },
+            "uniqueItems": true
+          },
+          "numericBindings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "evidenceId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 96
+                },
+                "rowKey": {
+                  "type": "string"
+                },
+                "field": {
+                  "type": "string"
+                },
+                "transformId": {
+                  "enum": [
+                    "IDENTITY",
+                    "DELTA",
+                    "RELATIVE_CHANGE",
+                    "PP_DELTA",
+                    "SHAPLEY_ORDERS",
+                    "SHAPLEY_AOV"
+                  ]
+                }
+              },
+              "required": [
+                "evidenceId",
+                "rowKey",
+                "field",
+                "transformId"
+              ]
+            }
+          },
+          "support": {
+            "enum": [
+              "SUPPORTED",
+              "CONTRADICTED",
+              "INSUFFICIENT"
+            ]
+          }
+        },
+        "required": [
+          "claimId",
+          "type",
+          "text",
+          "evidenceRefs",
+          "numericBindings",
+          "support"
+        ]
+      },
+      "minItems": 1
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "synthetic": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "reportId",
+    "version",
+    "runId",
+    "title",
+    "status",
+    "createdAt",
+    "scope",
+    "dateRange",
+    "comparisonRange",
+    "datasetVersionId",
+    "metricManifestHash",
+    "claims",
+    "limitations",
+    "synthetic"
+  ]
+}

@@ -1,5 +1,11 @@
 [中文](./CONTRIBUTING-zh.md) | English
 
+## Personal development in Biz Sentinel
+
+This repository uses only `main`. Develop, validate, commit, and push directly to `origin/main`; feature branches and pull requests are not required. See the [Biz Sentinel development guide](docs/BIZ_SENTINEL_DEVELOPMENT.md) for commands and upstream synchronization.
+
+The community contribution process below is retained for contributing to upstream Spring AI Alibaba DataAgent. It does not apply to personal development in this repository.
+
 ## How to Contribute
 
 ## Thank you for contributing to Spring AI Alibaba-DataAgent!

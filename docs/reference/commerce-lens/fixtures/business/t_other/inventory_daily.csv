@@ -1,0 +1,5 @@
+tenant_id,dataset_version_id,store_id,product_id,biz_date,closing_stock,stockout_minutes,quality_status
+t_other,demo_20260921_v1,s1,p1,2026-09-13,120,30,COMPLETE
+t_other,demo_20260921_v1,s1,p2,2026-09-13,120,0,COMPLETE
+t_other,demo_20260921_v1,s1,p1,2026-09-20,120,30,COMPLETE
+t_other,demo_20260921_v1,s1,p2,2026-09-20,120,0,COMPLETE

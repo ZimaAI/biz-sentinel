@@ -5,13 +5,19 @@
 本项目基于 Spring AI Alibaba DataAgent，保留原项目完整提交历史。
 初始化基线：`27e7baa85db868a7364a977031f8f705d5988f1c`。
 
-- `origin`：`git@github.com:ZimaAI/biz-sentinel.git`，日常推送目标。
+- `origin`：`https://github.com/ZimaAI/biz-sentinel.git`，日常推送目标（也可使用 SSH 地址）。
 - `upstream`：`https://github.com/spring-ai-alibaba/DataAgent.git`，用于同步上游。
-- `main`：稳定主分支，初始化时对应上游基线；后续接收验证过的版本。
-- `develop`：二次开发集成分支，包含本指南。
-- `feature/<功能名>`：从 `develop` 创建，每个功能独立开发，通过 PR 合入 `develop`。
+- `main`：本个人项目唯一开发分支，日常开发、验证、提交与发布均基于此分支。
+- 原 `develop` 的提交已合入 `main`，不再维护 `develop` 或功能分支，也不要求通过 PR 提交个人开发改动。
 
-本机已设置 `remote.pushDefault=origin`。其他机器克隆后如需同步上游，应执行：
+首次克隆并进入主分支：
+
+```bash
+git clone --branch main https://github.com/ZimaAI/biz-sentinel.git
+cd biz-sentinel
+```
+
+如需同步上游且尚未配置 `upstream`，执行：
 
 ```bash
 git remote add upstream https://github.com/spring-ai-alibaba/DataAgent.git
@@ -92,16 +98,15 @@ pnpm dev
 ## 日常开发与验证
 
 ```bash
-git switch develop
-git pull --ff-only origin develop
-git switch -c feature/your-feature
+git switch main
+git pull --ff-only origin main
 # 修改代码并完成验证
 git add <本次修改的文件>
 git commit -m "feat: describe your feature"
-git push -u origin feature/your-feature
+git push origin main
 ```
 
-在自己的 GitHub 仓库创建 PR，目标选 `develop`；集成验证后，再将 `develop` 合入 `main`。
+直接在 `main` 上完成开发和提交，验证通过后推送到 `origin/main`。需要提交工作区全部改动时，使用 `git add -A`。
 
 根据改动执行相应检查：
 
@@ -117,24 +122,23 @@ pnpm build
 
 涉及模型、数据库或 Docker 的集成测试需配置对应依赖。
 上游 `.github/workflows/build-and-test.yml` 的作业限定了原仓库名，迁入本仓库后会跳过；
-正式启用自动化验证时，需要调整该条件及工作流的分支过滤，使其覆盖 `develop`。
-此次初始化未修改 CI，也未执行应用构建或端到端测试。
+工作流分支过滤已覆盖 `main`；正式启用本仓库的自动化验证时，需要调整仓库名条件。
+单分支调整不改变 CI 作业的启用条件，提交前仍按改动范围执行本地验证。
 
 ## 同步上游
 
-通过单独分支合并并验证，保留共享分支历史：
+将上游更新直接合并到 `main` 并验证，保留现有提交历史。开始前先提交工作区改动：
 
 ```bash
+git switch main
+git pull --ff-only origin main
 git fetch upstream
-git switch develop
-git pull --ff-only origin develop
-git switch -c chore/sync-upstream-YYYYMMDD
 git merge upstream/main
 # 如有冲突，解决后 git add 对应文件，再 git commit；随后运行相关测试
-git push -u origin chore/sync-upstream-YYYYMMDD
+git push origin main
 ```
 
-创建 PR 合入自己的 `develop`。同步分支名中的日期每次替换为实际日期。
+上游同步也使用同一个 `main` 分支，合并后验证通过再推送。
 
 ## 进一步阅读
 

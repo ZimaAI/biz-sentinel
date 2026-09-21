@@ -1,0 +1,18 @@
+{
+  "repository": "https://github.com/spring-ai-alibaba/DataAgent.git",
+  "branch_reviewed": "main",
+  "review_date": "2026-09-21",
+  "commit_sha": null,
+  "verification": "Selected upstream source and official docs inspected via web; no local clone/build; immutable commit not obtained",
+  "gate_0_required": true,
+  "observed_versions": {
+    "java": "17",
+    "spring_boot": "3.4.8",
+    "spring_ai": "1.1.2",
+    "spring_ai_alibaba": "1.1.2.2",
+    "nuxt_declared": "^4.3.0",
+    "vue_declared": "^3.5.27",
+    "vuetify_declared": "^3.11.8",
+    "echarts_declared": "^6.0.0"
+  }
+}
