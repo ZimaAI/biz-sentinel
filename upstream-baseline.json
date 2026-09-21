@@ -1,0 +1,7 @@
+{
+  "repository": "spring-ai-alibaba/DataAgent",
+  "commit": "db6bb683fb4e29b3768719d81620df2df09a65d4",
+  "verifiedAt": "2026-09-21",
+  "implementation": "implementation/upstream-diff.md",
+  "initialWorktreeClean": true
+}

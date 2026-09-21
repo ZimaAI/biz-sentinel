@@ -1,0 +1,84 @@
+{
+  "application": "CommerceLens Nuxt frontend with real MySQL-backed Commerce API",
+  "browser": "Codex in-app browser",
+  "apiMocks": false,
+  "viewports": [
+    {
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "width": 390,
+      "height": 844
+    },
+    {
+      "width": 1440,
+      "height": 1000
+    }
+  ],
+  "checks": [
+    {
+      "name": "session login and protected-page redirect",
+      "status": "PASS"
+    },
+    {
+      "name": "all-store GMV 486200.00 CNY and single-store GMV 255000.00 CNY after applying scope",
+      "status": "PASS"
+    },
+    {
+      "name": "evidence drawer API, SQL, redacted parameters, Escape and focus return",
+      "status": "PASS"
+    },
+    {
+      "name": "create run, inspect plan and approve real execution to SUCCEEDED",
+      "status": "PASS",
+      "runId": "run_1b3b7d56-d8a7-449e-a239-e851b677863f"
+    },
+    {
+      "name": "structured report, verified facts, decomposition and inventory correlation boundary",
+      "status": "PASS"
+    },
+    {
+      "name": "report export request and UI success feedback",
+      "status": "PASS",
+      "limitation": "Browser download event was not observable with the in-app browser tool; Markdown content is separately verified by the real HTTP smoke script."
+    },
+    {
+      "name": "run audit replays all 24 persisted events in sequence",
+      "status": "PASS"
+    },
+    {
+      "name": "metric dictionary launches a real net_receipts query and opens its evidence",
+      "status": "PASS"
+    },
+    {
+      "name": "save single-store GMV rule, observe scheduled alert with eight reference dates, acknowledge without resolving",
+      "status": "PASS"
+    },
+    {
+      "name": "read real dataset and member authorization lists",
+      "status": "PASS"
+    },
+    {
+      "name": "upload full standard ZIP, validate eight files, explicitly publish 389208 rows, display new version and separate watermarks",
+      "status": "PASS",
+      "jobId": "ing_4276bc41f14e4fd587eeeb02a72a09b3",
+      "datasetVersionId": "demo_20260921_ui_v2",
+      "jobVersion": 3
+    },
+    {
+      "name": "390px overview layout and mobile navigation",
+      "status": "PASS"
+    },
+    {
+      "name": "final production build after backend semantic fixes: expired session returns to login, fresh login restores v2 overview and four canonical KPIs",
+      "status": "PASS"
+    }
+  ],
+  "dataNotice": "Both snapshots contain synthetic reference data. The v2 import preserves every business field and changes only the dataset version and corresponding CSV hashes.",
+  "notValidatedHere": [
+    "live model calls",
+    "production load targets",
+    "real merchant platform integration"
+  ]
+}

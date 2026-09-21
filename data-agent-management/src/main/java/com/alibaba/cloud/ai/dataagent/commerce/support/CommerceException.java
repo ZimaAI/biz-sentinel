@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-2026 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.alibaba.cloud.ai.dataagent;
+package com.alibaba.cloud.ai.dataagent.commerce.support;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.scheduling.annotation.EnableScheduling;
-
-@EnableScheduling
-@SpringBootApplication(scanBasePackages = "${data-agent.scan-package:com.alibaba.cloud.ai.dataagent}")
-public class DataAgentApplication {
-
-	public static void main(String[] args) {
-		SpringApplication.run(DataAgentApplication.class, args);
-	}
-
+public class CommerceException extends RuntimeException {
+    private final int status;
+    private final String code;
+    public CommerceException(int status, String code, String message) {
+        super(message); this.status = status; this.code = code;
+    }
+    public int status() { return status; }
+    public String code() { return code; }
+    public int getStatus() { return status; }
+    public String getCode() { return code; }
 }

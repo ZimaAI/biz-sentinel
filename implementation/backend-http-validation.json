@@ -1,0 +1,16 @@
+{
+  "backend": "http://127.0.0.1:8065/api/commerce/v1",
+  "database": "MySQL 8.4",
+  "fixture": "demo_20260921_ui_v2",
+  "checks": [
+    "session, CSRF, identity and eight metrics",
+    "MySQL raw fixture golden totals and seven-day trend",
+    "mixed unauthorized scope, arbitrary SQL and SKU refunds rejected",
+    "idempotency, stale/concurrent approvals, StateGraph, evidence, report export and SSE replay",
+    "real member grant isolation and historical evidence revocation",
+    "scheduled complete-history alert and acknowledgment"
+  ],
+  "runId": "run_2aa75bec-dc18-4959-9689-cd5758265f1d",
+  "reportId": "report_run_2aa75bec-dc18-4959-9689-cd5758265f1d",
+  "model": "DETERMINISTIC_LOCAL; no live model credentials used"
+}

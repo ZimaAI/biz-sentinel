@@ -65,3 +65,7 @@ uploads/*
 spring-ai-alibaba-1.1.0.0/
 .gstack/
 .codegraph/
+.commerce-local/
+.commerce-data/
+data-agent-management/.commerce-data/
+__pycache__/

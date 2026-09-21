@@ -1,0 +1,66 @@
+data-agent:
+  scan-package: com.alibaba.cloud.ai.dataagent.commerce
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.ai.vectorstore.milvus.autoconfigure.MilvusVectorStoreAutoConfiguration
+      - org.springframework.ai.vectorstore.elasticsearch.autoconfigure.ElasticsearchVectorStoreAutoConfiguration
+      - org.springframework.ai.model.chat.memory.repository.jdbc.autoconfigure.JdbcChatMemoryRepositoryAutoConfiguration
+      - org.springframework.boot.autoconfigure.security.reactive.ReactiveUserDetailsServiceAutoConfiguration
+  main:
+    web-application-type: reactive
+  sql:
+    init:
+      mode: never
+  ai:
+    mcp:
+      server:
+        enabled: false
+    vectorstore:
+      milvus:
+        enabled: false
+      elasticsearch:
+        enabled: false
+    chat:
+      memory:
+        repository:
+          jdbc:
+            initialize-schema: never
+  codec:
+    max-in-memory-size: 32MB
+server:
+  reactive:
+    session:
+      timeout: 8h
+      cookie:
+        http-only: true
+        same-site: strict
+        secure: ${COMMERCE_COOKIE_SECURE:false}
+commerce:
+  allowed-origins: ${COMMERCE_ALLOWED_ORIGINS:http://localhost:3000,http://127.0.0.1:3000}
+  storage-path: ${COMMERCE_STORAGE_PATH:.commerce-data}
+  initialize-schema: ${COMMERCE_INITIALIZE_SCHEMA:false}
+  planner: ${COMMERCE_PLANNER:deterministic}
+  datasource:
+    management:
+      url: ${COMMERCE_MANAGEMENT_URL:jdbc:mysql://127.0.0.1:13316/commerce_management?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+      username: ${COMMERCE_MANAGEMENT_USER:cl_management}
+      password: ${COMMERCE_MANAGEMENT_PASSWORD}
+    ingestion:
+      url: ${COMMERCE_ANALYSIS_URL:jdbc:mysql://127.0.0.1:13316/commerce_analysis?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&rewriteBatchedStatements=true}
+      username: ${COMMERCE_INGESTION_USER:cl_ingestion}
+      password: ${COMMERCE_INGESTION_PASSWORD}
+    query:
+      url: ${COMMERCE_ANALYSIS_URL:jdbc:mysql://127.0.0.1:13316/commerce_analysis?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+      username: ${COMMERCE_QUERY_USER:cl_query}
+      password: ${COMMERCE_QUERY_PASSWORD}
+  bootstrap:
+    username: ${COMMERCE_ADMIN_USER:admin}
+    password: ${COMMERCE_ADMIN_PASSWORD:}
+    tenant: ${COMMERCE_TENANT:t_demo}
+    stores: ${COMMERCE_STORES:s1,s2,s3}
+    fixture-directory: ${COMMERCE_FIXTURE_DIRECTORY:}
+  model:
+    base-url: ${COMMERCE_MODEL_BASE_URL:}
+    name: ${COMMERCE_MODEL_NAME:}
+    api-key: ${COMMERCE_MODEL_API_KEY:}

@@ -1,0 +1,3362 @@
+# Implementation contract; reference design remains unchanged.
+openapi: 3.1.0
+info:
+  title: CommerceLens 商脉经营分析 API（当前实现）
+  version: '1.0'
+  description: 对应 commerce profile 的实现契约。源设计保留在 docs/reference/commerce-lens/contracts/openapi.yaml。业务时区 Asia/Shanghai；日期左闭右开；金额为人民币分的十进制字符串，比率为十进制字符串。所有响应对象额外字段在本契约显式列出。运行事件
+    schemaVersion=1.0。会话登录、权限、查询与运行均由真实后端执行；本地确定性规划器不代表已完成在线大模型评测。
+servers:
+- url: /api/commerce/v1
+security:
+- sessionCookie: []
+paths:
+  /me:
+    get:
+      operationId: getMe
+      summary: 当前身份与授权范围
+      tags:
+      - me
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId:
+                    type: string
+                    minLength: 1
+                    maxLength: 96
+                  data:
+                    $ref: '#/components/schemas/Me'
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /overview:
+    get:
+      operationId: getOverview
+      summary: 授权范围的经营总览
+      tags:
+      - overview
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId:
+                    type: string
+                    minLength: 1
+                    maxLength: 96
+                  data:
+                    $ref: '#/components/schemas/Overview'
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: storeIds
+        in: query
+        required: true
+        schema:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 96
+        style: form
+        explode: true
+        description: 可重复参数或逗号分隔店铺 ID；任何显式无权店铺拒绝整次请求。
+      - name: start
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+      - name: endExclusive
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+      - name: comparison
+        in: query
+        required: true
+        schema:
+          enum:
+          - PREVIOUS_WEEK_SAME_DAYS
+          - PREVIOUS_PERIOD
+  /metrics:
+    get:
+      operationId: listMetrics
+      summary: 已发布指标目录
+      tags:
+      - metrics
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId:
+                    type: string
+                    minLength: 1
+                    maxLength: 96
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Metric'
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /queries:
+    post:
+      operationId: queryMetrics
+      summary: 执行严格受控的指标查询
+      tags:
+      - queries
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId:
+                    type: string
+                    minLength: 1
+                    maxLength: 96
+                  data:
+                    $ref: '#/components/schemas/QueryResult'
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
+        description: 先 GET /auth/session 获取。登录成功后使用响应的新 csrfToken；所有 POST/PATCH/DELETE 均要求。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                requestedStoreIds:
+                  type: array
+                  items:
+                    type: string
+                    minLength: 1
+                    maxLength: 96
+                  minItems: 0
+                  description: 省略或空列表使用当前全部授权店铺；不得混入无权店铺。
+                spec:
+                  $ref: '#/components/schemas/QuerySpec'
+              required:
+              - spec
+      security:
+      - sessionCookie: []
+        csrfToken: []
+  /runs:
+    post:
+      operationId: createRun
+      summary: 创建诊断运行，连接与执行独立
+      tags:
+      - runs
+      responses:
+        '202':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId:
+                    type: string
+                    minLength: 1
+                    maxLength: 96
+                  data:
+                    $ref: '#/components/schemas/Run'
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+        description: Same tenant/subject/operation/key with different body returns 409.
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
+        description: 先 GET /auth/session 获取。登录成功后使用响应的新 csrfToken；所有 POST/PATCH/DELETE 均要求。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRun'
+      security:
+      - sessionCookie: []
+        csrfToken: []
+    get:
+      operationId: listRuns
+      summary: 当前用户可见运行
+      tags:
+      - runs
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId:
+                    type: string
+                    minLength: 1
+                    maxLength: 96
+                  data:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Run'
+                      nextCursor:
+                        type:
+                        - string
+                        - 'null'
+                    required:
+                    - items
+                    - nextCursor
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: status
+        in: query
+        required: false
+        schema:
+          enum:
+          - QUEUED
+          - PLANNING
+          - WAITING_APPROVAL
+          - RUNNING
+          - CANCEL_REQUESTED
+          - SUCCEEDED
+          - PARTIAL
+          - FAILED
+          - CANCELLED
+          - EXPIRED
+          - ACCESS_REVOKED
+  /runs/{runId}:
+    get:
+      operationId: getRun
+      summary: 运行快照
+      tags:
+      - runs
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId:
+                    type: string
+                    minLength: 1
+                    maxLength: 96
+                  data:
+                    $ref: '#/components/schemas/Run'
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: runId
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 96
+  /runs/{runId}/approval:
+    post:
+      operationId: approveRun
+      summary: 批准或拒绝指定版本计划
+      tags:
+      - runs
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId:
+                    type: string
+                    minLength: 1
+                    maxLength: 96
+                  data:
+                    $ref: '#/components/schemas/Run'
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: runId
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 96
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
+        description: 先 GET /auth/session 获取。登录成功后使用响应的新 csrfToken；所有 POST/PATCH/DELETE 均要求。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Approval'
+      security:
+      - sessionCookie: []
+        csrfToken: []
+  /runs/{runId}/cancel:
+    post:
+      operationId: cancelRun
+      summary: 幂等请求取消
+      tags:
+      - runs
+      responses:
+        '202':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId:
+                    type: string
+                    minLength: 1
+                    maxLength: 96
+                  data:
+                    $ref: '#/components/schemas/Run'
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: runId
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 96
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
+        description: 先 GET /auth/session 获取。登录成功后使用响应的新 csrfToken；所有 POST/PATCH/DELETE 均要求。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                expectedRunVersion:
+                  type: integer
+                  minimum: 1
+              required:
+              - expectedRunVersion
+      security:
+      - sessionCookie: []
+        csrfToken: []
+  /runs/{runId}/events:
+    get:
+      operationId: subscribeRunEvents
+      summary: SSE订阅与重放，不启动任务
+      tags:
+      - runs
+      responses:
+        '200':
+          description: 'Ordered persistent events; heartbeat comments have no ID. Event payload follows RunEvent. Expired
+            cursor: 410.'
+          content:
+            text/event-stream:
+              schema:
+                type: string
+              example: 'id: 1
+
+                event: run.created
+
+                data: {"schemaVersion":"1.0","runId":"r1","sequence":1,"type":"run.created","occurredAt":"2026-09-21T01:00:00Z","payload":{}}
+
+
+                '
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: Last-Event-ID
+        in: header
+        required: false
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+      - name: after
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+      - name: runId
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 96
+      description: 750ms 扫描持久事件，15s 注释心跳。Last-Event-ID 优先于 after；仅重放/订阅，不创建或推进运行。终态事件后关闭连接。
+  /evidence/{evidenceId}:
+    get:
+      operationId: getEvidence
+      summary: 读取当前仍有权访问的证据
+      tags:
+      - evidence
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId:
+                    type: string
+                    minLength: 1
+                    maxLength: 96
+                  data:
+                    $ref: '#/components/schemas/Evidence'
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: evidenceId
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 96
+  /reports:
+    get:
+      operationId: listReports
+      summary: 当前可见报告
+      tags:
+      - reports
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId:
+                    type: string
+                    minLength: 1
+                    maxLength: 96
+                  data:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Report'
+                      nextCursor:
+                        type:
+                        - string
+                        - 'null'
+                    required:
+                    - items
+                    - nextCursor
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+  /reports/{reportId}:
+    get:
+      operationId: getReport
+      summary: 读取不可变报告
+      tags:
+      - reports
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId:
+                    type: string
+                    minLength: 1
+                    maxLength: 96
+                  data:
+                    $ref: '#/components/schemas/Report'
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: reportId
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 96
+  /reports/{reportId}/export:
+    get:
+      operationId: exportReport
+      summary: 重新鉴权后导出Markdown
+      tags:
+      - reports
+      responses:
+        '200':
+          description: Download report with Content-Disposition attachment. Export is audited.
+          content:
+            text/markdown:
+              schema:
+                type: string
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: reportId
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 96
+      description: 返回 Markdown 文本及 attachment 文件名 commerce-report.md，每次导出重新鉴权并登记审计。
+  /anomaly-rules:
+    get:
+      operationId: listRules
+      summary: 规则列表
+      tags:
+      - anomaly-rules
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId:
+                    type: string
+                    minLength: 1
+                    maxLength: 96
+                  data:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/AnomalyRule'
+                      nextCursor:
+                        type:
+                        - string
+                        - 'null'
+                    required:
+                    - items
+                    - nextCursor
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+    post:
+      operationId: createRule
+      summary: 管理员创建规则
+      tags:
+      - anomaly-rules
+      responses:
+        '201':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId:
+                    type: string
+                    minLength: 1
+                    maxLength: 96
+                  data:
+                    $ref: '#/components/schemas/AnomalyRule'
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
+        description: 先 GET /auth/session 获取。登录成功后使用响应的新 csrfToken；所有 POST/PATCH/DELETE 均要求。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnomalyRuleInput'
+      security:
+      - sessionCookie: []
+        csrfToken: []
+  /anomaly-rules/{ruleId}:
+    patch:
+      operationId: updateRule
+      summary: CAS更新规则并产生新版本
+      tags:
+      - anomaly-rules
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId:
+                    type: string
+                    minLength: 1
+                    maxLength: 96
+                  data:
+                    $ref: '#/components/schemas/AnomalyRule'
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: ruleId
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 96
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
+        description: 先 GET /auth/session 获取。登录成功后使用响应的新 csrfToken；所有 POST/PATCH/DELETE 均要求。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                expectedVersion:
+                  type: integer
+                  minimum: 1
+                definition:
+                  $ref: '#/components/schemas/AnomalyRuleInput'
+              required:
+              - expectedVersion
+              - definition
+      security:
+      - sessionCookie: []
+        csrfToken: []
+  /anomalies:
+    get:
+      operationId: listAnomalies
+      summary: 业务异常列表
+      tags:
+      - anomalies
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId:
+                    type: string
+                    minLength: 1
+                    maxLength: 96
+                  data:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Anomaly'
+                      nextCursor:
+                        type:
+                        - string
+                        - 'null'
+                    required:
+                    - items
+                    - nextCursor
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+  /anomalies/{anomalyId}/acknowledge:
+    post:
+      operationId: acknowledgeAnomaly
+      summary: 确认知晓，不直接解除异常
+      tags:
+      - anomalies
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId:
+                    type: string
+                    minLength: 1
+                    maxLength: 96
+                  data:
+                    $ref: '#/components/schemas/Anomaly'
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: anomalyId
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 96
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
+        description: 先 GET /auth/session 获取。登录成功后使用响应的新 csrfToken；所有 POST/PATCH/DELETE 均要求。
+      security:
+      - sessionCookie: []
+        csrfToken: []
+  /datasets:
+    get:
+      operationId: listDatasets
+      summary: 数据版本与完整性
+      tags:
+      - datasets
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId:
+                    type: string
+                    minLength: 1
+                    maxLength: 96
+                  data:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Dataset'
+                      nextCursor:
+                        type:
+                        - string
+                        - 'null'
+                    required:
+                    - items
+                    - nextCursor
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+  /ingestions:
+    post:
+      operationId: createIngestion
+      summary: 上传标准CSV ZIP，不执行SQL
+      tags:
+      - ingestions
+      responses:
+        '202':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId:
+                    type: string
+                    minLength: 1
+                    maxLength: 96
+                  data:
+                    $ref: '#/components/schemas/Ingestion'
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+        description: Same tenant/subject/operation/key with different body returns 409.
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
+        description: 先 GET /auth/session 获取。登录成功后使用响应的新 csrfToken；所有 POST/PATCH/DELETE 均要求。
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: 标准 ZIP；HTTP 限制 32 MiB，展开后合计不超过 256 MiB。
+              required:
+              - file
+      description: 管理员接口；multipart 字段名为 file。同步完成规范校验后返回 202 和 READY_TO_PUBLISH 或 REJECTED 任务，不自动发布。相同幂等键对应不同压缩内容返回 409。
+      security:
+      - sessionCookie: []
+        csrfToken: []
+  /ingestions/{jobId}:
+    get:
+      operationId: getIngestion
+      summary: 查询导入校验进度
+      tags:
+      - ingestions
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId:
+                    type: string
+                    minLength: 1
+                    maxLength: 96
+                  data:
+                    $ref: '#/components/schemas/Ingestion'
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: jobId
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 96
+  /ingestions/{jobId}/publish:
+    post:
+      operationId: publishIngestion
+      summary: 管理员CAS发布不可变快照
+      tags:
+      - ingestions
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId:
+                    type: string
+                    minLength: 1
+                    maxLength: 96
+                  data:
+                    $ref: '#/components/schemas/Dataset'
+                required:
+                - requestId
+                - data
+        default:
+          description: 'Error: 400/401/403/404/409/410/422/429/503 as documented'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: jobId
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 96
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
+        description: 先 GET /auth/session 获取。登录成功后使用响应的新 csrfToken；所有 POST/PATCH/DELETE 均要求。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                expectedVersion:
+                  type: integer
+                  minimum: 1
+              required:
+              - expectedVersion
+      security:
+      - sessionCookie: []
+        csrfToken: []
+  /health:
+    get:
+      operationId: getHealth
+      summary: 存活检查；不检查所有依赖
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId:
+                    type: string
+                    minLength: 1
+                    maxLength: 160
+                  data:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      status:
+                        const: UP
+                      service:
+                        const: CommerceLens
+                    required:
+                    - status
+                    - service
+                required:
+                - requestId
+                - data
+        default:
+          description: 错误；HTTP 状态及固定错误体见 Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters: []
+      security: []
+  /auth/session:
+    get:
+      operationId: getSession
+      summary: 建立匿名会话并获取 CSRF token，或查询当前登录状态
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId:
+                    type: string
+                    minLength: 1
+                    maxLength: 160
+                  data:
+                    $ref: '#/components/schemas/Session'
+                required:
+                - requestId
+                - data
+        default:
+          description: 错误；HTTP 状态及固定错误体见 Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters: []
+      security: []
+    post:
+      operationId: login
+      summary: 用户名/密码登录；成功后旋转 SESSION ID 和 CSRF token
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId:
+                    type: string
+                    minLength: 1
+                    maxLength: 160
+                  data:
+                    $ref: '#/components/schemas/Session'
+                required:
+                - requestId
+                - data
+        default:
+          description: 错误；HTTP 状态及固定错误体见 Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
+        description: 先 GET /auth/session 获取。登录成功后使用响应的新 csrfToken；所有 POST/PATCH/DELETE 均要求。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Login'
+      security:
+      - sessionCookie: []
+        csrfToken: []
+      description: 允许匿名会话调用，但必须先 GET 此地址并保存 SESSION Cookie 和 csrfToken。租户、角色及授权店铺由服务端成员映射解析。
+    delete:
+      operationId: logout
+      summary: 失效当前会话
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId:
+                    type: string
+                    minLength: 1
+                    maxLength: 160
+                  data:
+                    $ref: '#/components/schemas/Session'
+                required:
+                - requestId
+                - data
+        default:
+          description: 错误；HTTP 状态及固定错误体见 Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
+        description: 先 GET /auth/session 获取。登录成功后使用响应的新 csrfToken；所有 POST/PATCH/DELETE 均要求。
+      security:
+      - sessionCookie: []
+        csrfToken: []
+  /members:
+    get:
+      operationId: listMembers
+      summary: 管理员读取当前租户成员；当前接口不分页
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId:
+                    type: string
+                    minLength: 1
+                    maxLength: 160
+                  data:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Member'
+                      nextCursor:
+                        type:
+                        - string
+                        - 'null'
+                    required:
+                    - items
+                    - nextCursor
+                required:
+                - requestId
+                - data
+        default:
+          description: 错误；HTTP 状态及固定错误体见 Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters: []
+    post:
+      operationId: createMember
+      summary: 管理员创建账号与店铺授权
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId:
+                    type: string
+                    minLength: 1
+                    maxLength: 160
+                  data:
+                    $ref: '#/components/schemas/Member'
+                required:
+                - requestId
+                - data
+        default:
+          description: 错误；HTTP 状态及固定错误体见 Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
+        description: 先 GET /auth/session 获取。登录成功后使用响应的新 csrfToken；所有 POST/PATCH/DELETE 均要求。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMember'
+      security:
+      - sessionCookie: []
+        csrfToken: []
+  /members/{subjectId}:
+    patch:
+      operationId: updateMember
+      summary: 管理员使用 authzVersion 的 CAS 更新授权；变更后版本递增
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId:
+                    type: string
+                    minLength: 1
+                    maxLength: 160
+                  data:
+                    $ref: '#/components/schemas/Member'
+                required:
+                - requestId
+                - data
+        default:
+          description: 错误；HTTP 状态及固定错误体见 Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: subjectId
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 160
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
+        description: 先 GET /auth/session 获取。登录成功后使用响应的新 csrfToken；所有 POST/PATCH/DELETE 均要求。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMember'
+      security:
+      - sessionCookie: []
+        csrfToken: []
+  /reports/{reportId}/visibility:
+    patch:
+      operationId: setReportVisibility
+      summary: 报告所有者或管理员更改报告及其引用证据的团队可见性
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId:
+                    type: string
+                    minLength: 1
+                    maxLength: 160
+                  data:
+                    $ref: '#/components/schemas/Report'
+                required:
+                - requestId
+                - data
+        default:
+          description: 错误；HTTP 状态及固定错误体见 Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: reportId
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 160
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
+        description: 先 GET /auth/session 获取。登录成功后使用响应的新 csrfToken；所有 POST/PATCH/DELETE 均要求。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                visibility:
+                  enum:
+                  - PRIVATE
+                  - TEAM
+              required:
+              - visibility
+      security:
+      - sessionCookie: []
+        csrfToken: []
+  /monitor-status:
+    get:
+      operationId: listMonitorStatus
+      summary: 最近可见监控计算/质量门禁状态（最多 100 条）
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  requestId:
+                    type: string
+                    minLength: 1
+                    maxLength: 160
+                  data:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/MonitorStatus'
+                      nextCursor:
+                        type:
+                        - string
+                        - 'null'
+                    required:
+                    - items
+                    - nextCursor
+                required:
+                - requestId
+                - data
+        default:
+          description: 错误；HTTP 状态及固定错误体见 Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters: []
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: SESSION
+      description: Spring WebFlux SESSION Cookie；HttpOnly、SameSite=Strict、8 小时会话。开发 HTTP 默认 Secure=false；HTTPS 部署设 COMMERCE_COOKIE_SECURE=true。登录前
+        GET /auth/session 先建立匿名会话及 CSRF token。
+    csrfToken:
+      type: apiKey
+      in: header
+      name: X-CSRF-Token
+      description: 必须匹配同一个 SESSION 的 CSRF token。
+  schemas:
+    Error:
+      type: object
+      additionalProperties: false
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        requestId:
+          type: string
+          minLength: 1
+          maxLength: 96
+        details:
+          type: object
+      required:
+      - code
+      - message
+      - requestId
+      - details
+      description: 通用错误固定 code/message/requestId/details。请求参数错误一般 422；未知/不可见资源 404；未登录 401；CSRF、角色或显式越权 403；CAS/幂等冲突 409；事件游标过期
+        410；预算限制 429；依赖不可用 503。
+    DateRange:
+      type: object
+      additionalProperties: false
+      properties:
+        start:
+          type: string
+          format: date
+        endExclusive:
+          type: string
+          format: date
+      required:
+      - start
+      - endExclusive
+    QuerySpec:
+      type: object
+      additionalProperties: false
+      properties:
+        metricIds:
+          type: array
+          items:
+            enum:
+            - paid_gmv
+            - paid_orders
+            - aov
+            - refund_amount
+            - net_receipts
+            - refund_intensity
+            - visitor_sessions
+            - order_conversion_rate
+          minItems: 1
+          maxItems: 8
+          uniqueItems: true
+        dimensions:
+          type: array
+          items:
+            enum:
+            - day
+            - store
+            - sku
+          uniqueItems: true
+          maxItems: 3
+        dateRange:
+          type: object
+          additionalProperties: false
+          properties:
+            start:
+              type: string
+              format: date
+            endExclusive:
+              type: string
+              format: date
+          required:
+          - start
+          - endExclusive
+        comparison:
+          enum:
+          - PREVIOUS_WEEK_SAME_DAYS
+          - PREVIOUS_PERIOD
+          - NONE
+        filters:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              field:
+                const: productId
+              operator:
+                const: IN
+              values:
+                type: array
+                items:
+                  type: string
+                  minLength: 1
+                  maxLength: 96
+                minItems: 1
+                maxItems: 20
+                uniqueItems: true
+            required:
+            - field
+            - operator
+            - values
+          maxItems: 1
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 1000
+      required:
+      - metricIds
+      - dimensions
+      - dateRange
+      - comparison
+      - filters
+      - limit
+      allOf:
+      - if:
+          properties:
+            dimensions:
+              contains:
+                const: sku
+        then:
+          properties:
+            metricIds:
+              items:
+                const: paid_gmv
+            dimensions:
+              contains:
+                const: store
+      - if:
+          properties:
+            filters:
+              minItems: 1
+        then:
+          properties:
+            metricIds:
+              items:
+                const: paid_gmv
+            dimensions:
+              contains:
+                const: store
+      description: 仅允许已实现语义 ID；日期跨度 1–90 日；同星期对比最多 7 日；SKU/商品过滤仅支持 paid_gmv 且必须包含 store。没有 SQL/表名/tenantId/版本参数。查询结果最多 1000
+        行/1 MiB，内部聚合超过 10000 行拒绝，单 SQL 3 秒，每租户最多 4 个并发查询。
+    Scope:
+      type: object
+      additionalProperties: false
+      properties:
+        tenantId:
+          type: string
+          minLength: 1
+          maxLength: 96
+        storeIds:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 96
+          minItems: 1
+          uniqueItems: true
+        authzVersion:
+          type: integer
+          minimum: 1
+      required:
+      - tenantId
+      - storeIds
+      - authzVersion
+    Report:
+      type: object
+      additionalProperties: false
+      properties:
+        reportId:
+          type: string
+          minLength: 1
+          maxLength: 96
+        version:
+          type: integer
+          minimum: 1
+        runId:
+          type: string
+          minLength: 1
+          maxLength: 96
+        title:
+          type: string
+        status:
+          enum:
+          - SUCCEEDED
+          - PARTIAL
+        createdAt:
+          type: string
+          format: date-time
+        scope:
+          type: object
+          additionalProperties: false
+          properties:
+            tenantId:
+              type: string
+              minLength: 1
+              maxLength: 96
+            storeIds:
+              type: array
+              items:
+                type: string
+                minLength: 1
+                maxLength: 96
+              minItems: 1
+              uniqueItems: true
+            authzVersion:
+              type: integer
+              minimum: 1
+          required:
+          - tenantId
+          - storeIds
+          - authzVersion
+        dateRange:
+          type: object
+          additionalProperties: false
+          properties:
+            start:
+              type: string
+              format: date
+            endExclusive:
+              type: string
+              format: date
+          required:
+          - start
+          - endExclusive
+        comparisonRange:
+          type: object
+          additionalProperties: false
+          properties:
+            start:
+              type: string
+              format: date
+            endExclusive:
+              type: string
+              format: date
+          required:
+          - start
+          - endExclusive
+        datasetVersionId:
+          type: string
+          minLength: 1
+          maxLength: 96
+        metricManifestHash:
+          type: string
+        claims:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              claimId:
+                type: string
+                minLength: 1
+                maxLength: 96
+              type:
+                enum:
+                - OBSERVATION
+                - DECOMPOSITION
+                - HYPOTHESIS
+                - LIMITATION
+                - RECOMMENDATION
+              text:
+                type: string
+                maxLength: 2000
+              evidenceRefs:
+                type: array
+                items:
+                  type: string
+                  minLength: 1
+                  maxLength: 96
+                uniqueItems: true
+              numericBindings:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: false
+                  properties:
+                    evidenceId:
+                      type: string
+                      minLength: 1
+                      maxLength: 96
+                    rowKey:
+                      type: string
+                    field:
+                      type: string
+                    transformId:
+                      enum:
+                      - IDENTITY
+                      - DELTA
+                      - RELATIVE_CHANGE
+                      - PP_DELTA
+                      - SHAPLEY_ORDERS
+                      - SHAPLEY_AOV
+                  required:
+                  - evidenceId
+                  - rowKey
+                  - field
+                  - transformId
+              support:
+                enum:
+                - SUPPORTED
+                - CONTRADICTED
+                - INSUFFICIENT
+            required:
+            - claimId
+            - type
+            - text
+            - evidenceRefs
+            - numericBindings
+            - support
+          minItems: 1
+        limitations:
+          type: array
+          items:
+            type: string
+        synthetic:
+          type: boolean
+        visibility:
+          enum:
+          - PRIVATE
+          - TEAM
+          default: PRIVATE
+        tenantId:
+          type: string
+          minLength: 1
+          maxLength: 160
+        subjectId:
+          type: string
+          minLength: 1
+          maxLength: 160
+        _revision:
+          type: integer
+          minimum: 0
+      required:
+      - reportId
+      - version
+      - runId
+      - title
+      - status
+      - createdAt
+      - scope
+      - dateRange
+      - comparisonRange
+      - datasetVersionId
+      - metricManifestHash
+      - claims
+      - limitations
+      - synthetic
+      description: GET/list 去除 tenantId/subjectId/_revision；PATCH visibility 当前返回更新后的存储文档，含这三个元数据字段。新报告明确返回 visibility，早期报告省略时等同
+        PRIVATE。共享仅限同租户且拥有完整店铺范围的成员，同时更新引用证据可见性。
+    RunEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        schemaVersion:
+          const: '1.0'
+        runId:
+          type: string
+          minLength: 1
+          maxLength: 96
+        sequence:
+          type: integer
+          minimum: 1
+        type:
+          enum:
+          - run.created
+          - run.state.changed
+          - plan.ready
+          - approval.required
+          - step.started
+          - step.summary
+          - evidence.ready
+          - report.ready
+          - run.completed
+          - run.failed
+          - run.cancelled
+          - access.revoked
+        occurredAt:
+          type: string
+          format: date-time
+        payload:
+          type: object
+          description: Payload varies by type; no raw private reasoning or unscoped query rows.
+      required:
+      - schemaVersion
+      - runId
+      - sequence
+      - type
+      - occurredAt
+      - payload
+    Store:
+      type: object
+      additionalProperties: false
+      properties:
+        storeId:
+          type: string
+          minLength: 1
+          maxLength: 96
+        name:
+          type: string
+        platform:
+          type: string
+      required:
+      - storeId
+      - name
+      - platform
+    Me:
+      type: object
+      additionalProperties: false
+      properties:
+        subjectId:
+          type: string
+          minLength: 1
+          maxLength: 96
+        tenantId:
+          type: string
+          minLength: 1
+          maxLength: 96
+        displayName:
+          type: string
+        roles:
+          type: array
+          items:
+            enum:
+            - TENANT_ADMIN
+            - OPS_MANAGER
+            - STORE_OPERATOR
+            - VIEWER
+        authzVersion:
+          type: integer
+        stores:
+          type: array
+          items:
+            $ref: '#/components/schemas/Store'
+      required:
+      - subjectId
+      - tenantId
+      - displayName
+      - roles
+      - authzVersion
+      - stores
+    Quality:
+      type: object
+      additionalProperties: false
+      properties:
+        status:
+          enum:
+          - COMPLETE
+          - PARTIAL
+          - STALE
+          - INVALID
+        businessWatermark:
+          type: string
+          format: date-time
+        publishedAt:
+          type: string
+          format: date-time
+        warnings:
+          type: array
+          items:
+            type: string
+        sourceStatus:
+          type: object
+          additionalProperties:
+            enum:
+            - COMPLETE
+            - PARTIAL
+            - INVALID
+            - MISSING
+        missingCoverage:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              source:
+                type: string
+              storeId:
+                type: string
+              date:
+                type: string
+                format: date
+              reason:
+                type: string
+            required:
+            - source
+            - storeId
+            - date
+            - reason
+      required:
+      - status
+      description: 查询/数据集返回水位、发布时间和 warnings；数学分解证据仅返回 status。PARTIAL 时相关指标为 null，不能补零。
+    Metric:
+      type: object
+      additionalProperties: false
+      properties:
+        metricId:
+          enum:
+          - paid_gmv
+          - paid_orders
+          - aov
+          - refund_amount
+          - net_receipts
+          - refund_intensity
+          - visitor_sessions
+          - order_conversion_rate
+        version:
+          type: integer
+          minimum: 1
+        displayName:
+          type: string
+        unit:
+          enum:
+          - CNY_CENT
+          - COUNT
+          - RATIO
+        definition:
+          type: string
+        supportedDimensions:
+          type: array
+          items:
+            enum:
+            - day
+            - store
+            - sku
+        requiredFacts:
+          type: array
+          items:
+            type: string
+        zeroDenominatorPolicy:
+          enum:
+          - '0'
+          - 'NULL'
+        compilerKey:
+          type: string
+        note:
+          type: string
+        state:
+          const: PUBLISHED
+      required:
+      - metricId
+      - version
+      - displayName
+      - unit
+      - definition
+      - supportedDimensions
+      - requiredFacts
+      - zeroDenominatorPolicy
+      - compilerKey
+      - state
+    Cell:
+      type: object
+      additionalProperties: false
+      properties:
+        field:
+          type: string
+        value:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?[0-9]+(\.[0-9]+)?$
+        unit:
+          enum:
+          - CNY_CENT
+          - COUNT
+          - RATIO
+          - PP
+        reason:
+          type:
+          - string
+          - 'null'
+      required:
+      - field
+      - value
+      - unit
+    ResultRow:
+      type: object
+      additionalProperties: false
+      properties:
+        rowKey:
+          type: string
+        dimensions:
+          type: object
+          additionalProperties:
+            type: string
+          description: 维度键 day/store/sku；可以附带 storeName/skuName，均为普通文本。
+        cells:
+          type: array
+          items:
+            $ref: '#/components/schemas/Cell'
+      required:
+      - rowKey
+      - dimensions
+      - cells
+    Column:
+      type: object
+      additionalProperties: false
+      properties:
+        field:
+          type: string
+        label:
+          type: string
+        unit:
+          enum:
+          - CNY_CENT
+          - COUNT
+          - RATIO
+          - PP
+          - DIMENSION
+      required:
+      - field
+      - label
+      - unit
+    QueryResult:
+      type: object
+      additionalProperties: false
+      properties:
+        queryArtifactId:
+          type: string
+          minLength: 1
+          maxLength: 96
+        evidenceId:
+          type: string
+          minLength: 1
+          maxLength: 96
+        scope:
+          $ref: '#/components/schemas/Scope'
+        dateRange:
+          $ref: '#/components/schemas/DateRange'
+        comparisonRange:
+          anyOf:
+          - $ref: '#/components/schemas/DateRange'
+          - type: 'null'
+        datasetVersionId:
+          type: string
+          minLength: 1
+          maxLength: 96
+        metricVersions:
+          type: object
+          additionalProperties:
+            type: integer
+        quality:
+          $ref: '#/components/schemas/Quality'
+        columns:
+          type: array
+          items:
+            $ref: '#/components/schemas/Column'
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResultRow'
+        totals:
+          $ref: '#/components/schemas/ResultRow'
+        rowCount:
+          type: integer
+          minimum: 0
+        truncated:
+          type: boolean
+      required:
+      - queryArtifactId
+      - evidenceId
+      - scope
+      - dateRange
+      - comparisonRange
+      - datasetVersionId
+      - metricVersions
+      - quality
+      - columns
+      - rows
+      - totals
+      - rowCount
+      - truncated
+      description: cells 中 <metric> 是当前值；对比时另有 <metric>_baseline、<metric>_delta、<metric>_change_ratio。RATIO 指标的 delta 单位为
+        PP，已乘 100；change_ratio 为相对变化。rowCount 是呈现限制前的分组数（库存最多探测 1001 行）；truncated 时 totals 仍来自完整指标聚合。
+    Overview:
+      type: object
+      additionalProperties: false
+      properties:
+        scope:
+          $ref: '#/components/schemas/Scope'
+        dateRange:
+          $ref: '#/components/schemas/DateRange'
+        comparisonRange:
+          $ref: '#/components/schemas/DateRange'
+        datasetVersionId:
+          type: string
+          minLength: 1
+          maxLength: 96
+        quality:
+          $ref: '#/components/schemas/Quality'
+        totals:
+          $ref: '#/components/schemas/ResultRow'
+        baselineTotals:
+          $ref: '#/components/schemas/ResultRow'
+        trend:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResultRow'
+        stores:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResultRow'
+        evidenceId:
+          type: string
+          minLength: 1
+          maxLength: 160
+        trendEvidenceId:
+          type: string
+          minLength: 1
+          maxLength: 160
+        trendRange:
+          $ref: '#/components/schemas/DateRange'
+        trendComparisonRange:
+          $ref: '#/components/schemas/DateRange'
+        metricVersions:
+          type: object
+          additionalProperties:
+            type: integer
+        metricManifestHash:
+          type: string
+        synthetic:
+          type: boolean
+        summary:
+          $ref: '#/components/schemas/OverviewSummary'
+      required:
+      - scope
+      - dateRange
+      - comparisonRange
+      - datasetVersionId
+      - quality
+      - totals
+      - baselineTotals
+      - trend
+      - stores
+      - evidenceId
+      - trendEvidenceId
+      - trendRange
+      - trendComparisonRange
+      - metricVersions
+      - metricManifestHash
+      - synthetic
+      - summary
+      description: 单日总览在同一快照覆盖足够历史时提供截至所选日的 7 日趋势；否则保留所选窗口。卡片日期与 trendRange/trendComparisonRange 分别展示。summary 为服务端计算的下降最集中店铺与净变化贡献，不能解释为因果。
+    PlanAction:
+      type: object
+      additionalProperties: false
+      properties:
+        actionId:
+          type: string
+          minLength: 1
+          maxLength: 96
+        toolName:
+          enum:
+          - resolve_metric
+          - inspect_data_quality
+          - query_metrics
+          - compare_segments
+          - decompose_gmv
+          - inspect_inventory_signal
+          - lookup_business_definition
+          - finalize_report
+        purpose:
+          type: string
+          maxLength: 500
+        maxCalls:
+          type: integer
+          minimum: 1
+          maximum: 12
+      required:
+      - actionId
+      - toolName
+      - purpose
+      - maxCalls
+    Plan:
+      type: object
+      additionalProperties: false
+      properties:
+        planVersion:
+          type: integer
+          minimum: 1
+        planHash:
+          type: string
+        dateRange:
+          $ref: '#/components/schemas/DateRange'
+        scope:
+          $ref: '#/components/schemas/Scope'
+        actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlanAction'
+        maxToolCalls:
+          type: integer
+          maximum: 12
+        maxTokens:
+          type: integer
+          maximum: 30000
+        expiresAt:
+          type: string
+          format: date-time
+      required:
+      - planVersion
+      - planHash
+      - dateRange
+      - scope
+      - actions
+      - maxToolCalls
+      - maxTokens
+      - expiresAt
+    Run:
+      type: object
+      additionalProperties: false
+      properties:
+        runId:
+          type: string
+          minLength: 1
+          maxLength: 96
+        conversationId:
+          type: string
+          minLength: 1
+          maxLength: 96
+        status:
+          enum:
+          - QUEUED
+          - PLANNING
+          - WAITING_APPROVAL
+          - RUNNING
+          - CANCEL_REQUESTED
+          - SUCCEEDED
+          - PARTIAL
+          - FAILED
+          - CANCELLED
+          - EXPIRED
+          - ACCESS_REVOKED
+        runVersion:
+          type: integer
+          minimum: 1
+        question:
+          type: string
+        scope:
+          $ref: '#/components/schemas/Scope'
+        datasetVersionId:
+          type: string
+          minLength: 1
+          maxLength: 96
+        metricManifestHash:
+          type: string
+        plan:
+          anyOf:
+          - $ref: '#/components/schemas/Plan'
+          - type: 'null'
+        latestSequence:
+          type: integer
+          minimum: 0
+        eventsUrl:
+          type: string
+        reportId:
+          type:
+          - string
+          - 'null'
+        createdAt:
+          type: string
+          format: date-time
+        scopeHash:
+          type: string
+        snapshotId:
+          type: string
+          minLength: 1
+          maxLength: 160
+        authzVersion:
+          type: integer
+          minimum: 0
+        planVersion:
+          type: integer
+          minimum: 0
+        planHash:
+          type:
+          - string
+          - 'null'
+        dateRange:
+          $ref: '#/components/schemas/DateRange'
+        comparisonRange:
+          $ref: '#/components/schemas/DateRange'
+        comparison:
+          enum:
+          - PREVIOUS_WEEK_SAME_DAYS
+          - PREVIOUS_PERIOD
+        requireApproval:
+          type: boolean
+        plannerMode:
+          enum:
+          - MODEL
+          - DETERMINISTIC_LOCAL
+        metricId:
+          type: string
+        synthetic:
+          type: boolean
+        steps:
+          type: array
+          items:
+            $ref: '#/components/schemas/RunStep'
+        evidenceIds:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 160
+        acceptedActions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Action'
+        hypotheses:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        remainingBudget:
+          $ref: '#/components/schemas/RemainingBudget'
+        activeMillis:
+          type: integer
+          minimum: 0
+        executionStartedAt:
+          type: string
+          format: date-time
+        approval:
+          type: object
+          additionalProperties: false
+          properties:
+            decision:
+              enum:
+              - APPROVE
+              - REJECT
+            automatic:
+              type: boolean
+            subjectId:
+              type: string
+            approvedAt:
+              type: string
+              format: date-time
+            planVersion:
+              type: integer
+              minimum: 0
+            planHash:
+              type: string
+            comment:
+              type: string
+          required:
+          - decision
+          - planVersion
+          - planHash
+        stopReason:
+          type: string
+        clarification:
+          type: object
+          additionalProperties: false
+          properties:
+            message:
+              type: string
+            suggestedQuestion:
+              type: string
+          required:
+          - message
+          - suggestedQuestion
+        error:
+          type: object
+          additionalProperties: false
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+          required:
+          - code
+          - message
+        modelAttempts:
+          type: integer
+          minimum: 0
+        modelInputTokens:
+          type: integer
+          minimum: 0
+        modelOutputTokens:
+          type: integer
+          minimum: 0
+        tokenAccounting:
+          enum:
+          - PROVIDER_USAGE_WITH_RESERVED_BUDGET
+          - RESERVED_ESTIMATE_USAGE_UNKNOWN
+        lastActionError:
+          type: string
+        firstRetainedSequence:
+          type: integer
+          minimum: 0
+      required:
+      - runId
+      - conversationId
+      - status
+      - runVersion
+      - question
+      - scope
+      - datasetVersionId
+      - metricManifestHash
+      - plan
+      - latestSequence
+      - eventsUrl
+      - createdAt
+      description: 公开持久化运行快照。steps 是工具行动/结构化结果，不是私有推理。规划模式显式标记；仅模型模式产生 model* 与 tokenAccounting。未知提供方 usage 不能解释为费用为零。批准 REJECT
+        当前终止为 CANCELLED，调整问题后新建任务。
+    CreateRun:
+      type: object
+      additionalProperties: false
+      properties:
+        question:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        requestedStoreIds:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 96
+          minItems: 1
+          maxItems: 100
+          uniqueItems: true
+        dateRange:
+          $ref: '#/components/schemas/DateRange'
+        comparison:
+          enum:
+          - PREVIOUS_WEEK_SAME_DAYS
+          - PREVIOUS_PERIOD
+        requireApproval:
+          type: boolean
+          default: true
+      required:
+      - question
+      - requestedStoreIds
+      - dateRange
+      - comparison
+    Approval:
+      type: object
+      additionalProperties: false
+      properties:
+        decision:
+          enum:
+          - APPROVE
+          - REJECT
+        planVersion:
+          type: integer
+          minimum: 1
+        planHash:
+          type: string
+        expectedRunVersion:
+          type: integer
+          minimum: 1
+        comment:
+          type: string
+          maxLength: 1000
+      required:
+      - decision
+      - planVersion
+      - planHash
+      - expectedRunVersion
+    Evidence:
+      type: object
+      additionalProperties: false
+      properties:
+        evidenceId:
+          type: string
+          minLength: 1
+          maxLength: 96
+        runId:
+          type:
+          - string
+          - 'null'
+        kind:
+          enum:
+          - QUERY_RESULT
+          - DECOMPOSITION
+          - INVENTORY_SIGNAL
+        datasetVersionId:
+          type: string
+          minLength: 1
+          maxLength: 96
+        metricManifestHash:
+          type: string
+        scope:
+          $ref: '#/components/schemas/Scope'
+        result:
+          $ref: '#/components/schemas/QueryResult'
+        sqlTemplate:
+          type:
+          - string
+          - 'null'
+        redactedParameters:
+          type: object
+        resultHash:
+          type: string
+        durationMs:
+          type: integer
+          minimum: 0
+        createdAt:
+          type: string
+          format: date-time
+        sourceEvidenceId:
+          type: string
+          minLength: 1
+          maxLength: 160
+        sourceRowKey:
+          type: string
+        calculation:
+          type: string
+        visibility:
+          enum:
+          - PRIVATE
+          - TEAM
+      required:
+      - evidenceId
+      - runId
+      - kind
+      - datasetVersionId
+      - metricManifestHash
+      - scope
+      - result
+      - sqlTemplate
+      - redactedParameters
+      - resultHash
+      - durationMs
+      - createdAt
+      description: 每次读取复核当前授权。DECOMPOSITION 附带原始证据 ID、行键和确定性计算式；SQL 参数不包含数据库凭据。
+    AnomalyRuleInput:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        metricId:
+          enum:
+          - paid_gmv
+          - paid_orders
+          - refund_amount
+          - order_conversion_rate
+        storeIds:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 96
+          minItems: 1
+        direction:
+          enum:
+          - UP
+          - DOWN
+        baseline:
+          const: SAME_WEEKDAY_MEDIAN_8
+        relativeThreshold:
+          type:
+          - string
+          - 'null'
+        absoluteThreshold:
+          type: string
+        unit:
+          enum:
+          - CNY_CENT
+          - COUNT
+          - PP
+        cooldownHours:
+          type: integer
+          minimum: 1
+          maximum: 168
+        enabled:
+          type: boolean
+      required:
+      - name
+      - metricId
+      - storeIds
+      - direction
+      - baseline
+      - relativeThreshold
+      - absoluteThreshold
+      - unit
+      - cooldownHours
+      - enabled
+    AnomalyRule:
+      type: object
+      additionalProperties: false
+      properties:
+        ruleId:
+          type: string
+          minLength: 1
+          maxLength: 96
+        version:
+          type: integer
+          minimum: 1
+        definition:
+          $ref: '#/components/schemas/AnomalyRuleInput'
+        scope:
+          $ref: '#/components/schemas/Scope'
+        subjectId:
+          type: string
+          minLength: 1
+          maxLength: 160
+        visibility:
+          enum:
+          - PRIVATE
+          - TEAM
+        createdAt:
+          type: string
+          format: date-time
+        _revision:
+          type: integer
+          minimum: 0
+        metricVersion:
+          type: integer
+          minimum: 0
+        metricManifestHash:
+          type: string
+      required:
+      - ruleId
+      - version
+      - definition
+    Anomaly:
+      type: object
+      additionalProperties: false
+      properties:
+        anomalyId:
+          type: string
+          minLength: 1
+          maxLength: 96
+        ruleId:
+          type: string
+          minLength: 1
+          maxLength: 96
+        ruleVersion:
+          type: integer
+        status:
+          enum:
+          - OPEN
+          - ACKNOWLEDGED
+          - RESOLVED
+          - SUPPRESSED
+        severity:
+          enum:
+          - INFO
+          - WARNING
+          - CRITICAL
+        scope:
+          $ref: '#/components/schemas/Scope'
+        metricId:
+          enum:
+          - paid_gmv
+          - paid_orders
+          - aov
+          - refund_amount
+          - net_receipts
+          - refund_intensity
+          - visitor_sessions
+          - order_conversion_rate
+        window:
+          $ref: '#/components/schemas/DateRange'
+        referenceDates:
+          type: array
+          items:
+            type: string
+            format: date
+        current:
+          $ref: '#/components/schemas/Cell'
+        baseline:
+          $ref: '#/components/schemas/Cell'
+        datasetVersionId:
+          type: string
+          minLength: 1
+          maxLength: 96
+        reason:
+          type: string
+        subjectId:
+          type: string
+          minLength: 1
+          maxLength: 160
+        visibility:
+          enum:
+          - PRIVATE
+          - TEAM
+        createdAt:
+          type: string
+          format: date-time
+        _revision:
+          type: integer
+          minimum: 0
+        sampleCount:
+          type: integer
+          minimum: 0
+        metricVersion:
+          type: integer
+          minimum: 0
+        algorithmVersion:
+          type: string
+        normalDays:
+          type: integer
+          minimum: 0
+        lastObservedDay:
+          type: string
+          format: date
+        acknowledgedAt:
+          type: string
+          format: date-time
+        scoreUnavailable:
+          type:
+          - string
+          - 'null'
+        supersedesEventId:
+          type: string
+          minLength: 1
+          maxLength: 160
+        supersededByEventId:
+          type: string
+          minLength: 1
+          maxLength: 160
+        supersededByDatasetVersionId:
+          type: string
+          minLength: 1
+          maxLength: 160
+        mergedInto:
+          type: string
+          minLength: 1
+          maxLength: 160
+      required:
+      - anomalyId
+      - ruleId
+      - ruleVersion
+      - status
+      - severity
+      - scope
+      - metricId
+      - window
+      - referenceDates
+      - current
+      - baseline
+      - datasetVersionId
+      - reason
+    Dataset:
+      type: object
+      additionalProperties: false
+      properties:
+        datasetVersionId:
+          type: string
+          minLength: 1
+          maxLength: 96
+        status:
+          enum:
+          - DRAFT
+          - VALIDATING
+          - PUBLISHED
+          - REJECTED
+          - RETIRED
+        coverage:
+          $ref: '#/components/schemas/Coverage'
+        quality:
+          $ref: '#/components/schemas/Quality'
+        tables:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              name:
+                type: string
+              rowCount:
+                type: integer
+                minimum: 0
+            required:
+            - name
+            - rowCount
+        stores:
+          type: array
+          items:
+            $ref: '#/components/schemas/Store'
+        synthetic:
+          type: boolean
+        scope:
+          $ref: '#/components/schemas/Scope'
+      required:
+      - datasetVersionId
+      - status
+      - coverage
+      - quality
+      - tables
+      - stores
+      - synthetic
+      - scope
+    Ingestion:
+      type: object
+      additionalProperties: false
+      properties:
+        jobId:
+          type: string
+          minLength: 1
+          maxLength: 96
+        version:
+          type: integer
+          minimum: 1
+        status:
+          enum:
+          - UPLOADED
+          - VALIDATING
+          - READY_TO_PUBLISH
+          - PUBLISHED
+          - REJECTED
+          - FAILED
+        datasetVersionId:
+          type: string
+          description: 校验失败且未读取有效清单时可为空字符串。
+        filesValidated:
+          type: integer
+          minimum: 0
+          maximum: 8
+        errors:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              file:
+                type: string
+              line:
+                type: integer
+                minimum: 0
+              code:
+                type: string
+              message:
+                type: string
+            required:
+            - file
+            - line
+            - code
+            - message
+        quality:
+          $ref: '#/components/schemas/Quality'
+      required:
+      - jobId
+      - version
+      - status
+      - datasetVersionId
+      - filesValidated
+      - errors
+    Coverage:
+      type: object
+      additionalProperties: false
+      properties:
+        start:
+          type: string
+          format: date
+        endExclusive:
+          type: string
+          format: date
+        completeBusinessDates:
+          type: array
+          items:
+            type: string
+            format: date
+      required:
+      - start
+      - endExclusive
+      - completeBusinessDates
+    OverviewSummary:
+      type: object
+      additionalProperties: false
+      properties:
+        metricId:
+          const: paid_gmv
+        storeId:
+          type:
+          - string
+          - 'null'
+        storeName:
+          type:
+          - string
+          - 'null'
+        deltaCents:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?[0-9]+(\.[0-9]+)?$
+        totalDeltaCents:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?[0-9]+(\.[0-9]+)?$
+        netContributionRatio:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?[0-9]+(\.[0-9]+)?$
+        evidenceId:
+          type: string
+          minLength: 1
+          maxLength: 160
+        type:
+          enum:
+          - DECLINE
+          - MIXED
+          - STABLE_OR_GROWTH
+          - INCOMPLETE
+      required:
+      - metricId
+      - storeId
+      - storeName
+      - deltaCents
+      - totalDeltaCents
+      - netContributionRatio
+      - evidenceId
+      - type
+    Action:
+      type: object
+      additionalProperties: false
+      properties:
+        actionId:
+          type: string
+          minLength: 1
+          maxLength: 160
+        toolName:
+          enum:
+          - resolve_metric
+          - inspect_data_quality
+          - query_metrics
+          - compare_segments
+          - decompose_gmv
+          - inspect_inventory_signal
+          - lookup_business_definition
+          - finalize_report
+        arguments:
+          type: object
+          additionalProperties: true
+        hypothesisId:
+          type: string
+        expectedEvidenceType:
+          type: string
+        purpose:
+          type: string
+      required:
+      - actionId
+      - toolName
+      - arguments
+    RemainingBudget:
+      type: object
+      additionalProperties: false
+      properties:
+        toolCalls:
+          type: integer
+          minimum: 0
+        tokens:
+          type: integer
+          minimum: 0
+        activeMillis:
+          type: integer
+          minimum: 0
+        structureRepairs:
+          type: integer
+          minimum: 0
+        modelRetries:
+          type: integer
+          minimum: 0
+      required:
+      - toolCalls
+      - tokens
+      - activeMillis
+      - structureRepairs
+      - modelRetries
+    RunStep:
+      type: object
+      additionalProperties: false
+      properties:
+        action:
+          $ref: '#/components/schemas/Action'
+        result:
+          type: object
+          additionalProperties: true
+        completedAt:
+          type: string
+          format: date-time
+        runId:
+          type: string
+          minLength: 1
+          maxLength: 160
+      required:
+      - action
+      - result
+      - completedAt
+      - runId
+    MonitorStatus:
+      type: object
+      additionalProperties: false
+      properties:
+        scope:
+          $ref: '#/components/schemas/Scope'
+        subjectId:
+          type: string
+          minLength: 1
+          maxLength: 160
+        visibility:
+          enum:
+          - PRIVATE
+          - TEAM
+        createdAt:
+          type: string
+          format: date-time
+        _revision:
+          type: integer
+          minimum: 0
+        monitorId:
+          type: string
+          minLength: 1
+          maxLength: 160
+        ruleId:
+          type: string
+          minLength: 1
+          maxLength: 160
+        ruleVersion:
+          type: integer
+          minimum: 0
+        metricVersion:
+          type: integer
+          minimum: 0
+        datasetVersionId:
+          type: string
+          minLength: 1
+          maxLength: 160
+        window:
+          $ref: '#/components/schemas/DateRange'
+        referenceDates:
+          type: array
+          items:
+            type: string
+            format: date
+        sampleCount:
+          type: integer
+          minimum: 0
+        anomalyId:
+          type: string
+          minLength: 1
+          maxLength: 160
+        status:
+          enum:
+          - TRIGGERED
+          - NORMAL
+          - INCOMPLETE_DATA
+          - SMALL_SAMPLE
+          - METRIC_VERSION_CHANGED
+          - INSUFFICIENT_HISTORY
+      required:
+      - monitorId
+      - ruleId
+      - ruleVersion
+      - scope
+      - datasetVersionId
+      - window
+      - referenceDates
+      - sampleCount
+      - status
+    Member:
+      type: object
+      additionalProperties: false
+      properties:
+        tenantId:
+          type: string
+          minLength: 1
+          maxLength: 160
+        subjectId:
+          type: string
+          minLength: 1
+          maxLength: 160
+        displayName:
+          type: string
+        storeIds:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+        roles:
+          type: array
+          items:
+            enum:
+            - TENANT_ADMIN
+            - OPS_MANAGER
+            - STORE_OPERATOR
+            - VIEWER
+          minItems: 1
+          uniqueItems: true
+        authzVersion:
+          type: integer
+          minimum: 0
+        enabled:
+          type: boolean
+        _revision:
+          type: integer
+          minimum: 0
+      required:
+      - tenantId
+      - subjectId
+      - displayName
+      - storeIds
+      - roles
+      - authzVersion
+      - enabled
+    CreateMember:
+      type: object
+      additionalProperties: false
+      properties:
+        username:
+          type: string
+          pattern: ^[A-Za-z0-9._-]{3,64}$
+        password:
+          type: string
+          minLength: 12
+          maxLength: 64
+          writeOnly: true
+        displayName:
+          type: string
+        storeIds:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+        roles:
+          type: array
+          items:
+            enum:
+            - TENANT_ADMIN
+            - OPS_MANAGER
+            - STORE_OPERATOR
+            - VIEWER
+          minItems: 1
+          uniqueItems: true
+      required:
+      - username
+      - password
+      - storeIds
+      - roles
+    UpdateMember:
+      type: object
+      additionalProperties: false
+      properties:
+        expectedVersion:
+          type: integer
+          minimum: 1
+        storeIds:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+        roles:
+          type: array
+          items:
+            enum:
+            - TENANT_ADMIN
+            - OPS_MANAGER
+            - STORE_OPERATOR
+            - VIEWER
+          minItems: 1
+          uniqueItems: true
+        enabled:
+          type: boolean
+      required:
+      - expectedVersion
+      - storeIds
+      - roles
+    Session:
+      type: object
+      additionalProperties: false
+      properties:
+        csrfToken:
+          type: string
+        authenticated:
+          type: boolean
+      required:
+      - authenticated
+    Login:
+      type: object
+      additionalProperties: false
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+          writeOnly: true
+      required:
+      - username
+      - password
+x-source-contract: ../docs/reference/commerce-lens/contracts/openapi.yaml
+x-schema-version: '1.0'

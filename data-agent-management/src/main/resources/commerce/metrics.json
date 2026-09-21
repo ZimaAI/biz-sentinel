@@ -1,0 +1,151 @@
+[
+  {
+    "metricId": "paid_gmv",
+    "version": 1,
+    "displayName": "支付 GMV",
+    "unit": "CNY_CENT",
+    "definition": "成功支付的商品实付金额；不含运费和税费。",
+    "supportedDimensions": [
+      "day",
+      "store",
+      "sku"
+    ],
+    "requiredFacts": [
+      "payments",
+      "order_items"
+    ],
+    "zeroDenominatorPolicy": "0",
+    "note": "金额下降为风险",
+    "compilerKey": "paid_gmv_v1",
+    "state": "PUBLISHED"
+  },
+  {
+    "metricId": "paid_orders",
+    "version": 1,
+    "displayName": "支付订单数",
+    "unit": "COUNT",
+    "definition": "窗口内规范成功支付对应的订单数。",
+    "supportedDimensions": [
+      "day",
+      "store"
+    ],
+    "requiredFacts": [
+      "payments"
+    ],
+    "zeroDenominatorPolicy": "0",
+    "note": "数量下降为风险",
+    "compilerKey": "paid_orders_v1",
+    "state": "PUBLISHED"
+  },
+  {
+    "metricId": "aov",
+    "version": 1,
+    "displayName": "客单价",
+    "unit": "CNY_CENT",
+    "definition": "支付 GMV / 支付订单数；先汇总分子分母。",
+    "supportedDimensions": [
+      "day",
+      "store"
+    ],
+    "requiredFacts": [
+      "payments"
+    ],
+    "zeroDenominatorPolicy": "NULL",
+    "note": "不等于商品单价",
+    "compilerKey": "aov_v1",
+    "state": "PUBLISHED"
+  },
+  {
+    "metricId": "refund_amount",
+    "version": 1,
+    "displayName": "成功退款额",
+    "unit": "CNY_CENT",
+    "definition": "以退款成功时间统计，可来自之前支付的订单。",
+    "supportedDimensions": [
+      "day",
+      "store"
+    ],
+    "requiredFacts": [
+      "refunds"
+    ],
+    "zeroDenominatorPolicy": "0",
+    "note": "增加为风险",
+    "compilerKey": "refund_amount_v1",
+    "state": "PUBLISHED"
+  },
+  {
+    "metricId": "net_receipts",
+    "version": 1,
+    "displayName": "净收款额",
+    "unit": "CNY_CENT",
+    "definition": "同期支付 GMV − 同期成功退款额；不是利润。",
+    "supportedDimensions": [
+      "day",
+      "store"
+    ],
+    "requiredFacts": [
+      "payments",
+      "refunds"
+    ],
+    "zeroDenominatorPolicy": "0",
+    "note": "允许负值",
+    "compilerKey": "net_receipts_v1",
+    "state": "PUBLISHED"
+  },
+  {
+    "metricId": "refund_intensity",
+    "version": 1,
+    "displayName": "退款金额强度",
+    "unit": "RATIO",
+    "definition": "同期成功退款额 / 同期支付 GMV；不是订单批次退款率。",
+    "supportedDimensions": [
+      "day",
+      "store"
+    ],
+    "requiredFacts": [
+      "payments",
+      "refunds"
+    ],
+    "zeroDenominatorPolicy": "NULL",
+    "note": "允许超过100%",
+    "compilerKey": "refund_intensity_v1",
+    "state": "PUBLISHED"
+  },
+  {
+    "metricId": "visitor_sessions",
+    "version": 1,
+    "displayName": "访客会话数",
+    "unit": "COUNT",
+    "definition": "店铺日会话数求和；不是跨店去重人数。",
+    "supportedDimensions": [
+      "day",
+      "store"
+    ],
+    "requiredFacts": [
+      "traffic_daily"
+    ],
+    "zeroDenominatorPolicy": "0",
+    "note": "仅完整业务日",
+    "compilerKey": "visitor_sessions_v1",
+    "state": "PUBLISHED"
+  },
+  {
+    "metricId": "order_conversion_rate",
+    "version": 1,
+    "displayName": "支付订单转化比",
+    "unit": "RATIO",
+    "definition": "支付订单数 / 会话数；不是用户级转化率。",
+    "supportedDimensions": [
+      "day",
+      "store"
+    ],
+    "requiredFacts": [
+      "payments",
+      "traffic_daily"
+    ],
+    "zeroDenominatorPolicy": "NULL",
+    "note": "变化用百分点展示",
+    "compilerKey": "order_conversion_rate_v1",
+    "state": "PUBLISHED"
+  }
+]

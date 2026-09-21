@@ -1,0 +1,70 @@
+{
+  "contract": "implementation/openapi.yaml",
+  "schemaVersion": "1.0",
+  "schemasChecked": 37,
+  "localReferencesResolved": true,
+  "backend": "MySQL 8.4 via HTTP localhost:8065",
+  "readResponseChecks": [
+    {
+      "route": "/health",
+      "valid": true
+    },
+    {
+      "route": "/auth/session",
+      "valid": true
+    },
+    {
+      "route": "/me",
+      "valid": true
+    },
+    {
+      "route": "/metrics",
+      "valid": true
+    },
+    {
+      "route": "/datasets",
+      "valid": true
+    },
+    {
+      "route": "/overview",
+      "valid": true
+    },
+    {
+      "route": "/evidence/{evidenceId}",
+      "valid": true
+    },
+    {
+      "route": "/runs",
+      "valid": true
+    },
+    {
+      "route": "/runs/{runId}",
+      "valid": true
+    },
+    {
+      "route": "/reports",
+      "valid": true
+    },
+    {
+      "route": "/reports/{reportId}",
+      "valid": true
+    },
+    {
+      "route": "/anomaly-rules",
+      "valid": true
+    },
+    {
+      "route": "/anomalies",
+      "valid": true
+    },
+    {
+      "route": "/monitor-status",
+      "valid": true
+    },
+    {
+      "route": "/members",
+      "valid": true
+    }
+  ],
+  "errors": []
+}

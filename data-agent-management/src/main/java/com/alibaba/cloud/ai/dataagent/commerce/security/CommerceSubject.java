@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-2026 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.alibaba.cloud.ai.dataagent;
+package com.alibaba.cloud.ai.dataagent.commerce.security;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import java.util.Set;
 
-@EnableScheduling
-@SpringBootApplication(scanBasePackages = "${data-agent.scan-package:com.alibaba.cloud.ai.dataagent}")
-public class DataAgentApplication {
-
-	public static void main(String[] args) {
-		SpringApplication.run(DataAgentApplication.class, args);
-	}
-
+public record CommerceSubject(String tenantId, String subjectId, Set<String> storeIds, Set<String> roles, long authzVersion) {
+    public CommerceSubject { storeIds=Set.copyOf(storeIds); roles=Set.copyOf(roles); }
+    public boolean isAdmin() { return roles.contains("TENANT_ADMIN"); }
+    public boolean canAnalyze() { return isAdmin() || roles.contains("OPS_MANAGER") || roles.contains("STORE_OPERATOR"); }
 }

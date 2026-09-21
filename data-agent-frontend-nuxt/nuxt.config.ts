@@ -61,7 +61,7 @@ export default defineNuxtConfig({
 	ssr: false,
 	// /路由重定向到/create-agent
 	routeRules: {
-		'/': { redirect: '/agent/new' },
+		'/': { redirect: '/commerce/overview' },
 		// 代理所有 /api/** 的请求到 Java 后端
 		'/api/**': { proxy: 'http://localhost:8065/api/**' },
 		'/nl2sql/**': { proxy: 'http://localhost:8065/nl2sql/**' },
