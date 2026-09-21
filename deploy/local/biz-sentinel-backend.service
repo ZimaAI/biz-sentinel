@@ -1,0 +1,35 @@
+[Unit]
+Description=Biz Sentinel Java backend
+After=network-online.target docker.service
+Wants=network-online.target
+Requires=docker.service
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=biz-sentinel
+Group=biz-sentinel
+# AgentScope 1.0.2 publishes sandbox control ports on all interfaces.
+# Do not grant Docker access until sandbox port binding is restricted and tested.
+WorkingDirectory=/var/lib/biz-sentinel
+StateDirectory=biz-sentinel
+StateDirectoryMode=0750
+EnvironmentFile=/etc/biz-sentinel/backend.env
+ExecStart=/usr/bin/java -Xms256m -Xmx1536m -XX:ActiveProcessorCount=2 -jar /opt/biz-sentinel/current/backend.jar --spring.config.additional-location=file:/etc/biz-sentinel/application-production.yml
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=90
+MemoryHigh=1800M
+MemoryMax=2300M
+CPUQuota=150%
+TasksMax=256
+Nice=5
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target

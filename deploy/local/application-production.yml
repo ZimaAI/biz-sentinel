@@ -1,0 +1,27 @@
+server:
+  address: 127.0.0.1
+  port: 8065
+  forward-headers-strategy: framework
+spring:
+  datasource:
+    hikari:
+      maximum-pool-size: 8
+      minimum-idle: 2
+  ai:
+    alibaba:
+      data-agent:
+        file:
+          path: /var/lib/biz-sentinel/uploads
+        vector-store:
+          file-path: /var/lib/biz-sentinel/vectorstore/vectorstore.json
+        code-executor:
+          limit-memory: 500
+          cpu-core: 1
+          sandbox:
+            max-concurrency: 1
+            queue-capacity: 3
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

@@ -1,0 +1,35 @@
+name: biz-sentinel
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: biz-sentinel-mysql
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:13307:3306"
+    environment:
+      MYSQL_DATABASE: biz_sentinel
+      MYSQL_USER: biz_sentinel
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Set database password}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set root password}
+    command:
+      - --innodb-buffer-pool-size=128M
+      - --max-connections=50
+      - --performance-schema=OFF
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    mem_limit: 1g
+    cpus: 0.75
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD-SHELL", 'MYSQL_PWD="$$MYSQL_PASSWORD" mysql -h 127.0.0.1 -u biz_sentinel biz_sentinel -Nse "SELECT 1 FROM agent LIMIT 1"']
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+volumes:
+  mysql-data:
