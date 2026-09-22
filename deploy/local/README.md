@@ -38,9 +38,19 @@ NODE_OPTIONS='--max-old-space-size=1536' nice -n 10 pnpm build
 先添加 DNS A 记录 `bizsentinel → 36.151.151.229`。不要添加无可用公网 IPv6 的 AAAA 记录。
 80/443 必须能从公网到达现有 Nginx，应用的三个内部端口无需开放安全组。
 
+首次部署（尚未存在 `/opt/biz-sentinel/current`）才使用旧版安装脚本：
+
 ```bash
 sudo bash /home/zima/Develop/Projects/biz-sentinel/deploy/local/install.sh
 ```
+
+当前 Commerce 部署更新使用仓库内脚本；它会切换新 release、移除阻挡游客入口的站点 Basic Auth、重启服务并运行匿名/管理员验证：
+
+```bash
+sudo bash /home/zima/Develop/Projects/biz-sentinel/deploy/local/update-commerce.sh
+```
+
+不要在已有 Commerce 部署上重复运行旧版 `install.sh`。
 
 脚本检查路径、容器名和端口冲突，备份 Nginx，新建独立账号和数据库，生成随机凭据，安装前后端服务；服务正常后配置 HTTP 验证目录，用现有 Certbot 账号签发独立证书，启用 HTTPS，测试续期并检查原站点。商脉登录页由应用会话负责认证，游客入口无需 Basic Auth；管理员账号仍通过页面内的隐藏账号密码入口登录。
 安装时需要能够拉取 `mysql:8.0`。实际镜像 digest 保存在部署备份目录中。
