@@ -123,6 +123,8 @@ $env:COMMERCE_MODEL_NAME = 'your-model'
 3. 登录成功后保存更新后的 Cookie 和新的 CSRF token。所有 `POST` / `PATCH` / `DELETE`，包括退出登录，都携带该 token。
 4. `GET /me` 返回当前角色、授权店铺和 `authzVersion`；租户来源于服务端会话，不能通过请求自选。
 
+登录页默认提供 `POST /api/commerce/v1/auth/guest/session` 游客入口。游客会话固定为 `VIEWER`，使用管理员配置的演示账号和店铺范围，只允许浏览；查询、运行、导入、规则、报告导出/分享等会产生写入或审计副作用的操作均返回 `READ_ONLY_SESSION`。租户管理员通过 `GET/PATCH /api/commerce/v1/members/guest-access` 查看或更新游客范围，更新使用 `expectedVersion` 做并发控制。
+
 创建运行与上传导入包需要 `Idempotency-Key`。创建运行在 24 小时内同键同规范请求返回原任务，同键不同请求返回 409。审批必须提交当前 `expectedRunVersion`、`planVersion` 和 `planHash`；拒绝审批会终止当前任务，修改问题后重新创建。
 
 `GET /runs/{runId}/events` 仅订阅持久化 SSE。原生 EventSource 使用 Cookie，重连优先采用 `Last-Event-ID`，初次历史重放使用 `after`；事件包含序号，客户端需去重。取消通过显式接口执行；关闭页面或断开 SSE 不会取消运行。
