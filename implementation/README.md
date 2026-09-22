@@ -104,6 +104,8 @@ Java 文件以及前端 `app/` 下的 Vue / TypeScript 文件均可设置断点�
 
 `COMMERCE_PLANNER=deterministic` 显式使用本地确定性规划器：根据真实聚合证据选择店铺比较、订单/客单价分解、SKU 和库存调查，并在运行/报告中标记 `DETERMINISTIC_LOCAL`。此模式没有调用大模型。`model` 模式沿用 `LlmService` 与 Spring AI 接口，模型仅能生成批准计划内的结构化工具行动；它无法提交 SQL 或扩大租户、店铺和日期范围。
 
+商脉与上游 DataAgent 共用后端工程和 `LlmService` 合约，但商脉的模型模式读取独立的 `COMMERCE_MODEL_*` 配置。用户在 DataAgent 页面保存的模型配置不会自动同步到商脉；需要在商脉部署环境中显式配置模型地址、名称和密钥。
+
 模型模式示例（替换为实际提供方配置）：
 
 ```powershell
