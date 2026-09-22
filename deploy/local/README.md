@@ -42,7 +42,7 @@ NODE_OPTIONS='--max-old-space-size=1536' nice -n 10 pnpm build
 sudo bash /home/zima/Develop/Projects/biz-sentinel/deploy/local/install.sh
 ```
 
-脚本检查路径、容器名和端口冲突，备份 Nginx，新建独立账号和数据库，生成随机凭据，安装前后端服务；服务正常后配置 HTTP 验证目录，用现有 Certbot 账号签发独立证书，启用 HTTPS 和全站 Basic 认证，测试续期并检查原站点。
+脚本检查路径、容器名和端口冲突，备份 Nginx，新建独立账号和数据库，生成随机凭据，安装前后端服务；服务正常后配置 HTTP 验证目录，用现有 Certbot 账号签发独立证书，启用 HTTPS，测试续期并检查原站点。商脉登录页由应用会话负责认证，游客入口无需 Basic Auth；管理员账号仍通过页面内的隐藏账号密码入口登录。
 安装时需要能够拉取 `mysql:8.0`。实际镜像 digest 保存在部署备份目录中。
 证书沿用本机已有 ACME 账号；若现有账号不可用，Certbot 会失败，需要另外配置账号，不自动修改现有账号。
 
@@ -70,7 +70,7 @@ sudo journalctl -u biz-sentinel-frontend -n 100 --no-pager
 sudo certbot renew --cert-name bizsentinel.zimagent.top --dry-run
 ```
 
-`verify.py` 检查页面、API、认证、证书和原站点，但从本机发起的请求不能证明其他网络能访问。
+`verify.py` 检查登录页、游客会话、游客只读限制、管理员会话、证书和原站点，但从本机发起的请求不能证明其他网络能访问。
 还应通过手机移动网络访问新域名，确认登录和页面正常。
 用 `ss -lntp` 确认 8065、13000、13307 仅监听回环地址。已有数据库端口的安全组规则需独立审查，不能为了本项目直接关闭而影响旧服务。
 Certbot 复用已有 `snap.certbot.renew.timer`，不新增重复定时任务。
@@ -78,7 +78,7 @@ Certbot 复用已有 `snap.certbot.renew.timer`，不新增重复定时任务。
 登录后在模型配置中添加聊天模型及 Embedding 模型、API Key、服务地址，然后添加业务数据源。
 业务数据源建议提供只读账号。没有真实模型凭据时只能验收基础部署，不能宣称 AI 分析已通过。
 Python 功能还需修复上述端口绑定问题，并验证默认 AgentScope 沙盒镜像及 Python 依赖网络；配置中的默认并发已降为 1，但目前不授予执行权限。
-Agent API Key 启用后，外部 API 客户端应以 `X-API-Key` 发送它，给 `Authorization` 留出站点 Basic 认证。
+Agent API Key 启用后，外部 API 客户端应以 `X-API-Key` 发送它。商脉的游客和管理员会话使用应用 Cookie/CSRF 机制。
 
 ## 数据备份
 

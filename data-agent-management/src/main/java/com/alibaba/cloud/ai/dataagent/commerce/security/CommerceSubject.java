@@ -17,8 +17,13 @@ package com.alibaba.cloud.ai.dataagent.commerce.security;
 
 import java.util.Set;
 
-public record CommerceSubject(String tenantId, String subjectId, Set<String> storeIds, Set<String> roles, long authzVersion) {
+public record CommerceSubject(String tenantId, String subjectId, Set<String> storeIds, Set<String> roles, long authzVersion,
+                              boolean guest) {
+    public CommerceSubject(String tenantId, String subjectId, Set<String> storeIds, Set<String> roles, long authzVersion) {
+        this(tenantId, subjectId, storeIds, roles, authzVersion, false);
+    }
     public CommerceSubject { storeIds=Set.copyOf(storeIds); roles=Set.copyOf(roles); }
-    public boolean isAdmin() { return roles.contains("TENANT_ADMIN"); }
-    public boolean canAnalyze() { return isAdmin() || roles.contains("OPS_MANAGER") || roles.contains("STORE_OPERATOR"); }
+    public boolean isAdmin() { return !guest && roles.contains("TENANT_ADMIN"); }
+    public boolean canAnalyze() { return !guest && (isAdmin() || roles.contains("OPS_MANAGER") || roles.contains("STORE_OPERATOR")); }
+    public boolean canWrite() { return !guest; }
 }

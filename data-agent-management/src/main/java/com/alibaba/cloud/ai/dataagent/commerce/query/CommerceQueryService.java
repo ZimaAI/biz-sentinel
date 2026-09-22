@@ -159,7 +159,12 @@ public class CommerceQueryService {
                 ((ArrayNode) result.path("quality").path("warnings")).add("支付订单转化比超过 100%，请检查订单与会话来源定义；此指标不是用户级转化率");
             }
             result.set("columns", columns(spec.metrics(), spec.dimensions(), baseline != null));
-            return persistEvidence(subject, result, specNode, sql, "QUERY_RESULT", began);
+            // Guest sessions are deliberately read-only.  The regular query path
+            // records query artifacts and evidence for auditability, which is a
+            // database write even when the caller only requested a view.  Keep the
+            // aggregate result in memory for guest overview browsing and skip that
+            // persistence side effect entirely.
+            return subject.guest() ? result : persistEvidence(subject, result, specNode, sql, "QUERY_RESULT", began);
         }
         catch (DataAccessException ex) { throw new CommerceException(503, "QUERY_UNAVAILABLE", "经营数据查询暂时不可用"); }
         finally { permits.release(); }

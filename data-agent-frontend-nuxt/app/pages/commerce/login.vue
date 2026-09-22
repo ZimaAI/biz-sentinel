@@ -5,7 +5,22 @@ const username = ref(''),
 	password = ref(''),
 	error = ref(''),
 	busy = ref(false),
+	showCredentials = ref(false),
 	context = useCommerceContext();
+async function guestSubmit() {
+	if (busy.value) return;
+	busy.value = true;
+	error.value = '';
+	try {
+		await commerceApi.guestLogin();
+		await context.refresh();
+		await navigateTo('/commerce/overview');
+	} catch (e) {
+		error.value = e instanceof Error ? e.message : '游客入口暂不可用';
+	} finally {
+		busy.value = false;
+	}
+}
 async function submit() {
 	if (busy.value) return;
 	busy.value = true;
@@ -45,8 +60,27 @@ async function submit() {
 				alt="商脉 CommerceLens"
 			/>
 			<h2>登录商脉工作台</h2>
-			<p>使用管理员为你开通的工作空间账号</p>
-			<form @submit.prevent="submit">
+			<p>先浏览一份真实经营分析演示，数据按授权范围展示。</p>
+			<button
+				class="cl-button primary guest-button"
+				type="button"
+				:disabled="busy"
+				@click="guestSubmit"
+			>
+				{{ busy && !showCredentials ? '正在打开演示…' : '游客浏览演示' }}
+				<CommerceIcon name="arrow-right" :size="16" />
+			</button>
+			<div v-if="error && !showCredentials" class="cl-banner error" role="alert">
+				{{ error }}
+			</div>
+			<button
+				class="credential-toggle"
+				type="button"
+				@click="showCredentials = !showCredentials; error = ''"
+			>
+				{{ showCredentials ? '收起账号入口' : '账号密码登录' }}
+			</button>
+			<form v-if="showCredentials" @submit.prevent="submit">
 				<label class="cl-field"
 					><span>账号</span
 					><input
@@ -74,7 +108,7 @@ async function submit() {
 					}}<CommerceIcon name="arrow-right" :size="16" />
 				</button>
 			</form>
-			<small>数据按工作空间与店铺授权隔离，使用记录可追溯。</small>
+			<small>游客仅可浏览演示数据；管理员账号可管理成员与授权范围。</small>
 			<footer><IcpFiling /></footer>
 		</section>
 	</main>
@@ -137,6 +171,24 @@ async function submit() {
 	color: var(--cl-secondary);
 	font-size: 13px;
 	margin: 8px 0 32px;
+}
+.guest-button {
+	width: 100%;
+	margin-top: 6px;
+}
+.credential-toggle {
+	display: block;
+	margin: 18px auto 2px;
+	border: 0;
+	background: transparent;
+	color: #9aa3ba;
+	font-size: 10px;
+	cursor: pointer;
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
+.credential-toggle:hover {
+	color: var(--cl-secondary);
 }
 .login-form > small {
 	display: block;

@@ -30,6 +30,7 @@ export interface Me {
 	roles: string[];
 	authzVersion: number;
 	stores: Store[];
+	guest?: boolean;
 }
 export interface Cell {
 	field: string;
@@ -102,8 +103,8 @@ export interface Overview {
 	baselineTotals: ResultRow;
 	trend: ResultRow[];
 	stores: ResultRow[];
-	evidenceId: string;
-	trendEvidenceId: string;
+	evidenceId?: string | null;
+	trendEvidenceId?: string | null;
 	trendRange: DateRange;
 	trendComparisonRange: DateRange;
 	metricVersions: Record<string, number>;
@@ -310,4 +311,11 @@ export interface Member {
 	roles: string[];
 	authzVersion: number;
 	enabled: boolean;
+}
+export interface GuestAccess {
+	subjectId: string;
+	displayName: string;
+	storeIds: string[];
+	enabled: boolean;
+	version: number;
 }

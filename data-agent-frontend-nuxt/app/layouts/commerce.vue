@@ -115,7 +115,7 @@ useHead({
 						}}</span>
 						<div>
 							<strong>{{ context.me.value?.displayName || '工作空间' }}</strong
-							><small>{{ context.stores.value.length }} 家授权店铺</small>
+							><small>{{ context.me.value?.guest ? '游客只读演示' : `${context.stores.value.length} 家授权店铺` }}</small>
 						</div>
 						<button
 							class="cl-icon-button"
@@ -140,7 +140,7 @@ useHead({
 						><span>工作空间</span><span>/</span><span>{{ title }}</span>
 					</div>
 					<div class="cl-topbar-right">
-						<span>Asia/Shanghai</span
+						<span v-if="context.me.value?.guest" class="cl-badge guest-badge">游客只读</span><span>Asia/Shanghai</span
 						><span v-if="context.dataset.value?.synthetic" class="cl-badge"
 							>● 合成数据</span
 						><NuxtLink

@@ -59,9 +59,9 @@ export default defineNuxtConfig({
 	},
 	//全局关闭ssr
 	ssr: false,
-	// /路由重定向到/create-agent
+	// 商脉域名默认进入登录页，游客或管理员完成登录后再进入工作台。
 	routeRules: {
-		'/': { redirect: '/commerce/overview' },
+		'/': { redirect: '/commerce/login' },
 		// 代理所有 /api/** 的请求到 Java 后端
 		'/api/**': { proxy: 'http://localhost:8065/api/**' },
 		'/nl2sql/**': { proxy: 'http://localhost:8065/nl2sql/**' },

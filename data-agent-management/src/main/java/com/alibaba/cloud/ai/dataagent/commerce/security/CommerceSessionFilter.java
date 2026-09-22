@@ -61,10 +61,13 @@ public class CommerceSessionFilter implements WebFilter {
                 if(token==null || !MessageDigest.isEqual(csrf.getBytes(StandardCharsets.UTF_8),token.getBytes(StandardCharsets.UTF_8)))
                     throw new CommerceException(403,"CSRF_REJECTED","会话校验失败，请刷新后重试");
             }
-            if(!path.equals("/api/commerce/v1/auth/session") && !path.equals("/api/commerce/v1/health")) {
+            if(!Set.of("/api/commerce/v1/auth/session",
+                    "/api/commerce/v1/auth/guest/session",
+                    "/api/commerce/v1/health").contains(path)) {
                 String tenant=session.getAttribute("tenantId"), subject=session.getAttribute("subjectId");
                 if(tenant==null || subject==null) throw new CommerceException(401,"AUTHENTICATION_REQUIRED","请先登录商脉工作台");
-                exchange.getAttributes().put(SUBJECT,policy.subject(tenant,subject));
+                boolean guest=Boolean.TRUE.equals(session.getAttribute("guest"));
+                exchange.getAttributes().put(SUBJECT,guest ? policy.guestSubject() : policy.subject(tenant,subject));
             }
             return true;
         }).subscribeOn(Schedulers.boundedElastic()).flatMap(ignored->chain.filter(exchange)))

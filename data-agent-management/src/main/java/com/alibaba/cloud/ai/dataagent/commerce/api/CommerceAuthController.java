@@ -49,9 +49,20 @@ public class CommerceAuthController {
             return policy.subject(login.path("tenantId").asText(),login.path("subjectId").asText());
         }).subscribeOn(Schedulers.boundedElastic()).flatMap(subject->ex.getSession().flatMap(session->session.changeSessionId().then(Mono.fromSupplier(()-> {
             session.getAttributes().put("tenantId",subject.tenantId()); session.getAttributes().put("subjectId",subject.subjectId());
+            session.getAttributes().remove("guest");
             session.getAttributes().put("csrf",id("csrf"));
             return envelope(ex,object("csrfToken",session.getAttribute("csrf"),"authenticated",true));
         }))));
+    }
+    @PostMapping("/auth/guest/session") public Mono<ObjectNode> guest(ServerWebExchange ex) {
+        return Mono.fromCallable(policy::guestSubject).subscribeOn(Schedulers.boundedElastic())
+            .flatMap(subject->ex.getSession().flatMap(session->session.changeSessionId().then(Mono.fromSupplier(()-> {
+                session.getAttributes().put("tenantId",subject.tenantId());
+                session.getAttributes().put("subjectId",subject.subjectId());
+                session.getAttributes().put("guest",true);
+                session.getAttributes().put("csrf",id("csrf"));
+                return envelope(ex,object("csrfToken",session.getAttribute("csrf"),"authenticated",true,"guest",true));
+            }))));
     }
     @DeleteMapping("/auth/session") public Mono<ObjectNode> logout(ServerWebExchange ex) {
         return ex.getSession().flatMap(session->session.invalidate().thenReturn(envelope(ex,object("authenticated",false))));

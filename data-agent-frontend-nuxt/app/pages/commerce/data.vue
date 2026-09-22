@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { commerceApi } from '~/services/commerceApi';
-import type { Dataset, Member } from '~/types/commerce';
+import type { Dataset, GuestAccess, Member } from '~/types/commerce';
 import { dateRangeLabel, formatDecimal } from '~/utils/commerceFormat';
 
 definePageMeta({ layout: 'commerce' });
@@ -13,10 +13,12 @@ const {
 } = useCommerceContext();
 const datasets = ref<Dataset[]>([]),
 	members = ref<Member[]>([]),
+	guestAccess = ref<GuestAccess | null>(null),
 	selectedId = ref('');
 const loading = ref(true),
 	error = ref(''),
 	memberError = ref(''),
+	guestError = ref(''),
 	feedback = ref(''),
 	showImport = ref(false);
 const membersLoading = ref(false);
@@ -100,6 +102,22 @@ async function loadMembers() {
 		if (sequence === memberSequence) membersLoading.value = false;
 	}
 }
+async function loadGuestAccess() {
+	if (!isAdmin.value) {
+		guestAccess.value = null;
+		return;
+	}
+	try {
+		const response = await commerceApi.getGuestAccess();
+		if (isAdmin.value) {
+			guestAccess.value = response.config;
+			if (response.members.length) members.value = response.members;
+		}
+	} catch (cause) {
+		guestAccess.value = null;
+		guestError.value = cause instanceof Error ? cause.message : '游客范围暂时不可用';
+	}
+}
 async function load() {
 	const sequence = ++loadSequence;
 	loading.value = true;
@@ -150,6 +168,11 @@ async function memberSaved() {
 		}
 	}
 }
+async function guestSaved() {
+	feedback.value = '游客演示范围已更新，新的游客会话将按最新授权浏览。';
+	guestError.value = '';
+	await loadGuestAccess();
+}
 async function published() {
 	feedback.value = '新的数据快照已发布。';
 	cursor.value = undefined;
@@ -190,12 +213,15 @@ watch(
 		previous.value = [];
 		feedback.value = '';
 		memberError.value = '';
+		guestError.value = '';
+		guestAccess.value = null;
 		memberOpen.value = false;
 		editingMember.value = null;
 		showImport.value = false;
 		if (value) {
 			void load();
 			void loadMembers();
+			void loadGuestAccess();
 		}
 	},
 	{ immediate: true },
@@ -208,6 +234,7 @@ watch(isAdmin, (value) => {
 		showImport.value = false;
 		memberOpen.value = false;
 		members.value = [];
+		guestAccess.value = null;
 	}
 });
 onBeforeUnmount(() => {
@@ -483,6 +510,17 @@ onBeforeUnmount(() => {
 				</div>
 			</template>
 		</template>
+		<div v-if="activeTab === 'members' && isAdmin && guestError" class="cl-banner danger" role="alert">
+			{{ guestError }}
+		</div>
+		<CommerceGuestAccessPanel
+			v-if="activeTab === 'members' && isAdmin && guestAccess"
+			:access="guestAccess"
+			:members="members"
+			:stores="stores"
+			@saved="guestSaved"
+			@conflict="loadGuestAccess"
+		/>
 		<section
 			v-if="activeTab === 'members' && isAdmin"
 			class="cl-card cl-members-card"

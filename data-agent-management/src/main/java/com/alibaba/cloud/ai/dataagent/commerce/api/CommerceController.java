@@ -70,11 +70,11 @@ public class CommerceController {
         Set<String> seen=new java.util.HashSet<>();
         for(JsonNode data:datasets)for(JsonNode s:data.path("stores")) {String id=s.path("storeId").asText();if(subject.storeIds().contains(id)&&seen.add(id))stores.add(s);}
         JsonNode member=store.get("member",subject.tenantId()+":"+subject.subjectId());
-        return object("subjectId",subject.subjectId(),"tenantId",subject.tenantId(),"displayName",member.path("displayName").asText(subject.subjectId()),"roles",subject.roles(),"authzVersion",subject.authzVersion(),"stores",stores);
+        return object("subjectId",subject.subjectId(),"tenantId",subject.tenantId(),"displayName",member.path("displayName").asText(subject.subjectId()),"roles",subject.roles(),"authzVersion",subject.authzVersion(),"stores",stores,"guest",subject.guest());
     });}
     @GetMapping("/metrics") public Mono<ObjectNode> metrics(ServerWebExchange ex) {return result(ex,queries::metrics);}
     @GetMapping("/overview") public Mono<ObjectNode> overview(@RequestParam List<String> storeIds,@RequestParam String start,@RequestParam String endExclusive,@RequestParam String comparison,ServerWebExchange ex) {return result(ex,()->queries.overview(subject(ex),storeIds,start,endExclusive,comparison));}
-    @PostMapping("/queries") public Mono<ObjectNode> query(@RequestBody JsonNode request,ServerWebExchange ex) {return result(ex,()-> {fields(request,"requestedStoreIds","spec");return queries.query(subject(ex),new ArrayList<>(CommercePolicy.strings(request.path("requestedStoreIds"))),request.path("spec"));});}
+    @PostMapping("/queries") public Mono<ObjectNode> query(@RequestBody JsonNode request,ServerWebExchange ex) {return result(ex,()-> {CommerceSubject current=subject(ex);policy.assertWritable(current);fields(request,"requestedStoreIds","spec");return queries.query(current,new ArrayList<>(CommercePolicy.strings(request.path("requestedStoreIds"))),request.path("spec"));});}
     @PostMapping("/runs") @ResponseStatus(org.springframework.http.HttpStatus.ACCEPTED)
     public Mono<ObjectNode> createRun(@RequestBody JsonNode request,@RequestHeader("Idempotency-Key") String key,ServerWebExchange ex) {return result(ex,()-> {if(!subject(ex).canAnalyze())throw new CommerceException(403,"ROLE_REQUIRED","当前角色只能查看结果");return runs.create(subject(ex),request,key);});}
     @GetMapping("/runs") public Mono<ObjectNode> runs(@RequestParam(defaultValue="20") int limit,@RequestParam(required=false) String cursor,ServerWebExchange ex) {return result(ex,()->page(runs.list(subject(ex)),limit,cursor));}
@@ -96,13 +96,13 @@ public class CommerceController {
     @GetMapping("/evidence/{id}") public Mono<ObjectNode> evidence(@PathVariable String id,ServerWebExchange ex) {return result(ex,()->queries.evidence(subject(ex),id));}
     @GetMapping("/reports") public Mono<ObjectNode> reports(@RequestParam(defaultValue="20") int limit,@RequestParam(required=false) String cursor,ServerWebExchange ex) {return result(ex,()->page(runs.reports(subject(ex)),limit,cursor));}
     @GetMapping("/reports/{id}") public Mono<ObjectNode> report(@PathVariable String id,ServerWebExchange ex) {return result(ex,()->runs.report(subject(ex),id));}
-    @GetMapping("/reports/{id}/export") public Mono<ResponseEntity<String>> export(@PathVariable String id,ServerWebExchange ex) {return Mono.fromCallable(()-> {audit.record(subject(ex),"REPORT_EXPORT",id);return ResponseEntity.ok().contentType(MediaType.parseMediaType("text/markdown;charset=UTF-8")).header("Content-Disposition","attachment; filename=commerce-report.md").body(runs.export(subject(ex),id));}).subscribeOn(Schedulers.boundedElastic());}
+    @GetMapping("/reports/{id}/export") public Mono<ResponseEntity<String>> export(@PathVariable String id,ServerWebExchange ex) {return Mono.fromCallable(()-> {CommerceSubject current=subject(ex);policy.assertWritable(current);audit.record(current,"REPORT_EXPORT",id);return ResponseEntity.ok().contentType(MediaType.parseMediaType("text/markdown;charset=UTF-8")).header("Content-Disposition","attachment; filename=commerce-report.md").body(runs.export(current,id));}).subscribeOn(Schedulers.boundedElastic());}
     @PatchMapping("/reports/{id}/visibility") public Mono<ObjectNode> share(@PathVariable String id,@RequestBody JsonNode request,ServerWebExchange ex) {return result(ex,()-> {
-        fields(request,"visibility");String visibility=request.path("visibility").asText();if(!Set.of("PRIVATE","TEAM").contains(visibility))throw new CommerceException(422,"INVALID_VISIBILITY","仅支持私有或租户团队共享");
-        ObjectNode report=store.get("report",id);policy.assertReadable(subject(ex),report);
-        if(!subject(ex).subjectId().equals(report.path("subjectId").asText())&&!subject(ex).isAdmin())throw new CommerceException(403,"OWNER_REQUIRED","只有报告所有者可以修改共享范围");
+        CommerceSubject current=subject(ex);policy.assertWritable(current);fields(request,"visibility");String visibility=request.path("visibility").asText();if(!Set.of("PRIVATE","TEAM").contains(visibility))throw new CommerceException(422,"INVALID_VISIBILITY","仅支持私有或租户团队共享");
+        ObjectNode report=store.get("report",id);policy.assertReadable(current,report);
+        if(!current.subjectId().equals(report.path("subjectId").asText())&&!current.isAdmin())throw new CommerceException(403,"OWNER_REQUIRED","只有报告所有者可以修改共享范围");
         return store.transaction(()-> {
-            audit.record(subject(ex),"REPORT_VISIBILITY",id);
+            audit.record(current,"REPORT_VISIBILITY",id);
             Set<String> references=new java.util.HashSet<>();
             for(JsonNode claim:report.path("claims"))for(JsonNode ref:claim.path("evidenceRefs"))references.add(ref.asText());
             var pending=new java.util.ArrayDeque<>(references);
@@ -112,10 +112,10 @@ public class CommerceController {
     });}
     @GetMapping("/anomaly-rules") public Mono<ObjectNode> rules(@RequestParam(defaultValue="20") int limit,@RequestParam(required=false) String cursor,ServerWebExchange ex) {return result(ex,()->page(anomalies.rules(subject(ex)),limit,cursor));}
     @PostMapping("/anomaly-rules") @ResponseStatus(org.springframework.http.HttpStatus.CREATED)
-    public Mono<ObjectNode> createRule(@RequestBody JsonNode request,ServerWebExchange ex) {return result(ex,()->anomalies.saveRule(subject(ex),null,request));}
-    @PatchMapping("/anomaly-rules/{id}") public Mono<ObjectNode> editRule(@PathVariable String id,@RequestBody JsonNode request,ServerWebExchange ex) {return result(ex,()->anomalies.saveRule(subject(ex),id,request));}
+    public Mono<ObjectNode> createRule(@RequestBody JsonNode request,ServerWebExchange ex) {return result(ex,()-> {CommerceSubject current=subject(ex);policy.assertWritable(current);return anomalies.saveRule(current,null,request);});}
+    @PatchMapping("/anomaly-rules/{id}") public Mono<ObjectNode> editRule(@PathVariable String id,@RequestBody JsonNode request,ServerWebExchange ex) {return result(ex,()-> {CommerceSubject current=subject(ex);policy.assertWritable(current);return anomalies.saveRule(current,id,request);});}
     @GetMapping("/anomalies") public Mono<ObjectNode> anomalies(@RequestParam(defaultValue="20") int limit,@RequestParam(required=false) String cursor,ServerWebExchange ex) {return result(ex,()->page(anomalies.anomalies(subject(ex)),limit,cursor));}
-    @PostMapping("/anomalies/{id}/acknowledge") public Mono<ObjectNode> acknowledge(@PathVariable String id,ServerWebExchange ex) {return result(ex,()->anomalies.acknowledge(subject(ex),id));}
+    @PostMapping("/anomalies/{id}/acknowledge") public Mono<ObjectNode> acknowledge(@PathVariable String id,ServerWebExchange ex) {return result(ex,()-> {CommerceSubject current=subject(ex);policy.assertWritable(current);return anomalies.acknowledge(current,id);});}
     @GetMapping("/monitor-status") public Mono<ObjectNode> monitors(ServerWebExchange ex) {return result(ex,()->page(anomalies.monitors(subject(ex)),100,null));}
     @GetMapping("/datasets") public Mono<ObjectNode> datasets(@RequestParam(defaultValue="20") int limit,@RequestParam(required=false) String cursor,ServerWebExchange ex) {return result(ex,()->page(ingestion.datasets(subject(ex)),limit,cursor));}
     @PostMapping(value="/ingestions",consumes=MediaType.MULTIPART_FORM_DATA_VALUE) @ResponseStatus(org.springframework.http.HttpStatus.ACCEPTED)

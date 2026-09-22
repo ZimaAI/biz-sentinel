@@ -46,6 +46,10 @@ public class CommerceBootstrap implements ApplicationRunner {
             store.create("member",tenant+":"+username,tenant,object("tenantId",tenant,"subjectId",username,"displayName","经营管理员","storeIds",stores,"roles",subject.roles(),"authzVersion",1,"enabled",true));
             return store.create("login",username,tenant,object("tenantId",tenant,"subjectId",username,"passwordHash",new BCryptPasswordEncoder().encode(password)));
         });
+        if(store.findOne("guest-config","global")==null && store.findOne("member",tenant+":"+username)!=null) {
+            Set<String> guestStores=Set.copyOf(Arrays.asList(env.getProperty("commerce.bootstrap.guest-stores",String.join(",",stores)).split(",")));
+            store.create("guest-config","global",tenant,object("tenantId",tenant,"subjectId",username,"storeIds",guestStores,"enabled",true,"displayName","游客演示范围"));
+        }
         String directory=env.getProperty("commerce.bootstrap.fixture-directory","");
         if(!directory.isBlank()&&store.find("dataset",tenant).isEmpty()) {
             var dataset=ingestion.importDirectory(subject,Path.of(directory));

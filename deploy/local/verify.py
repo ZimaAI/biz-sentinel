@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Read-only deployment checks; credentials are never printed."""
-import base64
 import ipaddress
 import json
+import http.cookiejar
 import pathlib
 import socket
 import ssl
@@ -49,20 +49,56 @@ try:
 except socket.gaierror as exc:
     results["dns"] = {"ok": False, "error": str(exc)}
 
-check("frontend_loopback", "http://127.0.0.1:13000/agent/new", 200)
-check("backend_loopback", "http://127.0.0.1:8065/api/agent/list", 200)
-check("public_auth_required", f"https://{DOMAIN}/agent/new", 401)
-check("public_api_auth_required", f"https://{DOMAIN}/api/agent/list", 401)
+check("frontend_loopback", "http://127.0.0.1:13000/commerce/login", 200)
+check("backend_loopback", "http://127.0.0.1:8065/api/commerce/v1/health", 200)
+check("public_login_page", f"https://{DOMAIN}/commerce/login", 200)
 check("existing_site", "https://algomotion.zimagent.top/", 200)
 
 login_file = STATE / "admin-login.txt"
 if login_file.exists():
     login = dict(line.split("=", 1) for line in login_file.read_text().splitlines())
-    auth = base64.b64encode(f"{login['USERNAME']}:{login['PASSWORD']}".encode()).decode()
-    headers = {"Authorization": "Basic " + auth}
-    check("authenticated_frontend", f"https://{DOMAIN}/agent/new", 200, headers)
-    check("authenticated_api", f"https://{DOMAIN}/api/agent/list", 200, headers)
-    check("model_configuration", f"https://{DOMAIN}/api/model-config/check-ready", 200, headers)
+    class CommerceClient:
+        def __init__(self):
+            self.cookies = http.cookiejar.CookieJar()
+            self.client = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(self.cookies), urllib.request.ProxyHandler({}))
+            self.csrf = ""
+        def call(self, path, method="GET", body=None):
+            data = None if body is None else json.dumps(body).encode()
+            headers = {"Origin": f"https://{DOMAIN}"}
+            if data is not None:
+                headers.update({"Content-Type": "application/json", "X-CSRF-Token": self.csrf})
+            request = urllib.request.Request(f"https://{DOMAIN}/api/commerce/v1{path}", data=data, method=method, headers=headers)
+            with self.client.open(request, timeout=20) as response:
+                payload = json.loads(response.read())
+                return response.status, payload
+        def initialize(self):
+            status, payload = self.call("/auth/session")
+            self.csrf = payload["data"]["csrfToken"]
+            return status
+        def login(self, username, password, guest=False):
+            status, payload = self.call("/auth/guest/session" if guest else "/auth/session", "POST", {} if guest else {"username": username, "password": password})
+            self.csrf = payload["data"]["csrfToken"]
+            return status
+    try:
+        guest = CommerceClient()
+        guest.initialize()
+        results["guest_login"] = {"status": guest.login("", "", guest=True), "ok": True}
+        status, me = guest.call("/me")
+        results["guest_identity"] = {"status": status, "ok": status == 200 and me["data"].get("guest") is True}
+        request = urllib.request.Request(f"https://{DOMAIN}/api/commerce/v1/queries", data=b"{}", method="POST", headers={"Origin": f"https://{DOMAIN}", "Content-Type": "application/json", "X-CSRF-Token": guest.csrf})
+        try:
+            guest.client.open(request, timeout=20)
+            results["guest_write_blocked"] = {"status": 200, "ok": False}
+        except urllib.error.HTTPError as exc:
+            results["guest_write_blocked"] = {"status": exc.code, "ok": exc.code == 403}
+        admin = CommerceClient()
+        admin.initialize()
+        status = admin.login(login["USERNAME"], login["PASSWORD"])
+        results["admin_login"] = {"status": status, "ok": status == 200}
+        status, me = admin.call("/me")
+        results["admin_identity"] = {"status": status, "ok": status == 200 and "TENANT_ADMIN" in me["data"].get("roles", [])}
+    except Exception as exc:
+        results["commerce_authentication"] = {"ok": False, "error": str(exc)}
 
 try:
     with socket.create_connection((DOMAIN, 443), timeout=10) as connection:

@@ -25,6 +25,7 @@ import com.alibaba.cloud.ai.dataagent.commerce.security.CommerceSubject;
 import com.alibaba.cloud.ai.dataagent.commerce.support.CommerceException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.List;
 import java.util.Set;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -44,6 +45,11 @@ public class CommerceMemberController {
     @GetMapping public Mono<ObjectNode> list(ServerWebExchange ex) {return Mono.fromCallable(()-> {
         admin(subject(ex));return envelope(ex,object("items",store.find("member",subject(ex).tenantId()),"nextCursor",null));
     }).subscribeOn(Schedulers.boundedElastic());}
+    @GetMapping("/guest-access") public Mono<ObjectNode> guestAccess(ServerWebExchange ex) {return Mono.fromCallable(()-> {
+        CommerceSubject current=subject(ex);admin(current);
+        ObjectNode config=guestConfig(current);
+        return envelope(ex,object("config",publicGuestConfig(config),"members",store.find("member",current.tenantId()),"nextCursor",null));
+    }).subscribeOn(Schedulers.boundedElastic());}
     @PostMapping public Mono<ObjectNode> create(@RequestBody JsonNode request,ServerWebExchange ex) {return Mono.fromCallable(()-> {
         CommerceSubject subject=subject(ex);admin(subject);
         fields(request,"username","password","displayName","storeIds","roles");validate(subject,request);
@@ -56,6 +62,21 @@ public class CommerceMemberController {
             return envelope(ex,store.create("member",subject.tenantId()+":"+username,subject.tenantId(),member));
         });
     }).subscribeOn(Schedulers.boundedElastic());}
+    @PatchMapping("/guest-access") public Mono<ObjectNode> updateGuestAccess(@RequestBody JsonNode request,ServerWebExchange ex) {return Mono.fromCallable(()-> {
+        CommerceSubject current=subject(ex);admin(current);fields(request,"expectedVersion","enabled","subjectId","storeIds");
+        ObjectNode old=guestConfig(current);
+        if(old.path("_revision").asLong()!=request.path("expectedVersion").asLong()) throw new CommerceException(409,"VERSION_CONFLICT","游客范围已更新，请刷新");
+        String targetId=request.path("subjectId").asText();
+        ObjectNode target=store.get("member",current.tenantId()+":"+targetId);
+        Set<String> stores=CommercePolicy.strings(request.path("storeIds"));
+        if(!request.path("storeIds").isArray()||stores.isEmpty()||!current.storeIds().containsAll(stores)||!CommercePolicy.strings(target.path("storeIds")).containsAll(stores))
+            throw new CommerceException(403,"STORE_FORBIDDEN","游客只能访问管理员和目标账号共同授权的店铺");
+        return store.transaction(()-> {
+            audit.record(current,"GUEST_ACCESS_UPDATE","global");
+            ObjectNode updated=store.update("guest-config","global",old.path("_revision").asLong(),v->{v.put("tenantId",current.tenantId());v.put("subjectId",targetId);v.set("storeIds",request.path("storeIds"));v.put("enabled",request.path("enabled").asBoolean(false));v.put("displayName",target.path("displayName").asText(targetId));return v;});
+            return envelope(ex,publicGuestConfig(updated));
+        });
+    }).subscribeOn(Schedulers.boundedElastic());}
     @PatchMapping("/{id}") public Mono<ObjectNode> update(@PathVariable String id,@RequestBody JsonNode request,ServerWebExchange ex) {return Mono.fromCallable(()-> {
         CommerceSubject subject=subject(ex);admin(subject);fields(request,"expectedVersion","storeIds","roles","enabled");validate(subject,request);
         ObjectNode old=store.get("member",subject.tenantId()+":"+id);
@@ -66,6 +87,15 @@ public class CommerceMemberController {
         });
     }).subscribeOn(Schedulers.boundedElastic());}
     private void admin(CommerceSubject subject) {policy.assertCurrent(subject);if(!subject.isAdmin())throw new CommerceException(403,"ROLE_REQUIRED","只有租户管理员可以管理成员");}
+    private ObjectNode guestConfig(CommerceSubject current) {
+        ObjectNode config=store.findOne("guest-config","global");
+        if(config==null) config=store.create("guest-config","global",current.tenantId(),object("tenantId",current.tenantId(),"subjectId",current.subjectId(),"storeIds",current.storeIds(),"enabled",false,"displayName",current.subjectId()));
+        if(!current.tenantId().equals(config.path("tenantId").asText())) throw new CommerceException(403,"TENANT_FORBIDDEN","游客范围属于其他租户");
+        return config;
+    }
+    private ObjectNode publicGuestConfig(ObjectNode config) {
+        ObjectNode result=config.deepCopy();result.remove(List.of("tenantId","_revision"));result.put("version",config.path("_revision").asLong());return result;
+    }
     private void validate(CommerceSubject subject,JsonNode request) {
         Set<String> stores=CommercePolicy.strings(request.path("storeIds")),roles=CommercePolicy.strings(request.path("roles"));
         if(!request.path("storeIds").isArray()||!subject.storeIds().containsAll(stores))throw new CommerceException(403,"STORE_FORBIDDEN","只能授予当前管理范围内的店铺");

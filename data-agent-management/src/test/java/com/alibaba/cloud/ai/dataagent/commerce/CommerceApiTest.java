@@ -63,4 +63,19 @@ class CommerceApiTest {
         client.get().uri("/api/commerce/v1/me").cookie("SESSION",newSession).exchange().expectStatus().isOk().expectBody().jsonPath("$.data.tenantId").isEqualTo("t_demo");
         client.post().uri("/api/commerce/v1/queries").cookie("SESSION",newSession).header("X-CSRF-Token",csrf).bodyValue(Map.of()).exchange().expectStatus().isForbidden();
     }
+    @Test void guestSessionUsesConfiguredReadOnlyScope() {
+        var init=client.get().uri("/api/commerce/v1/auth/session").exchange().expectStatus().isOk().expectBody(JsonNode.class).returnResult();
+        String csrf=init.getResponseBody().path("data").path("csrfToken").asText();
+        String session=init.getResponseCookies().getFirst("SESSION").getValue();
+        var login=client.post().uri("/api/commerce/v1/auth/guest/session").cookie("SESSION",session)
+            .header("X-CSRF-Token",csrf).header("Origin","http://localhost:3000").bodyValue(Map.of())
+            .exchange().expectStatus().isOk().expectBody(JsonNode.class).returnResult();
+        String guestSession=login.getResponseCookies().getFirst("SESSION").getValue();
+        String guestCsrf=login.getResponseBody().path("data").path("csrfToken").asText();
+        client.get().uri("/api/commerce/v1/me").cookie("SESSION",guestSession).exchange().expectStatus().isOk()
+            .expectBody().jsonPath("$.data.guest").isEqualTo(true).jsonPath("$.data.roles[0]").isEqualTo("VIEWER");
+        client.post().uri("/api/commerce/v1/queries").cookie("SESSION",guestSession).header("X-CSRF-Token",guestCsrf)
+            .header("Origin","http://localhost:3000").bodyValue(Map.of()).exchange().expectStatus().isForbidden()
+            .expectBody().jsonPath("$.code").isEqualTo("READ_ONLY_SESSION");
+    }
 }

@@ -15,6 +15,7 @@ import type {
 	RuleDefinition,
 	Ingestion,
 	Member,
+	GuestAccess,
 } from '~/types/commerce';
 
 let csrf = '';
@@ -107,6 +108,14 @@ export const commerceApi = {
 			method: 'POST',
 			body: { username, password },
 		});
+		csrf = data.csrfToken;
+	},
+	async guestLogin() {
+		await session();
+		const data = await request<{ csrfToken: string; guest: boolean }>(
+			'/auth/guest/session',
+			{ method: 'POST', body: {} },
+		);
 		csrf = data.csrfToken;
 	},
 	async logout() {
@@ -202,6 +211,14 @@ export const commerceApi = {
 			body: { expectedVersion: version },
 		}),
 	listMembers: () => list<Member>('/members'),
+	getGuestAccess: () =>
+		request<{ config: GuestAccess; members: Member[] }>('/members/guest-access'),
+	updateGuestAccess: (body: {
+		expectedVersion: number;
+		enabled: boolean;
+		subjectId: string;
+		storeIds: string[];
+	}) => request<GuestAccess>('/members/guest-access', { method: 'PATCH', body }),
 	createMember: (body: unknown) =>
 		request<Member>('/members', { method: 'POST', body }),
 	updateMember: (id: string, body: unknown) =>
