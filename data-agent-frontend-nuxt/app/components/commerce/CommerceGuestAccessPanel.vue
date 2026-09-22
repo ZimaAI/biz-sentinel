@@ -37,7 +37,7 @@ watch(targetId, () => {
 });
 async function save() {
 	if (!props.access || saving.value || !target.value) return;
-	if (!storeIds.value.length) {
+	if (enabled.value && !storeIds.value.length) {
 		error.value = '至少选择一家演示店铺。';
 		return;
 	}

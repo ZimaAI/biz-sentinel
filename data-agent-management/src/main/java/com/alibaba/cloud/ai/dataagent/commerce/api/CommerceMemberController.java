@@ -69,7 +69,7 @@ public class CommerceMemberController {
         String targetId=request.path("subjectId").asText();
         ObjectNode target=store.get("member",current.tenantId()+":"+targetId);
         Set<String> stores=CommercePolicy.strings(request.path("storeIds"));
-        if(!request.path("storeIds").isArray()||stores.isEmpty()||!current.storeIds().containsAll(stores)||!CommercePolicy.strings(target.path("storeIds")).containsAll(stores))
+        if(!request.path("storeIds").isArray()||(request.path("enabled").asBoolean(false)&&stores.isEmpty())||!current.storeIds().containsAll(stores)||!CommercePolicy.strings(target.path("storeIds")).containsAll(stores))
             throw new CommerceException(403,"STORE_FORBIDDEN","游客只能访问管理员和目标账号共同授权的店铺");
         return store.transaction(()-> {
             audit.record(current,"GUEST_ACCESS_UPDATE","global");
