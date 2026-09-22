@@ -217,6 +217,7 @@ onBeforeUnmount(() => {
 				<p>报告固定生成时的范围、时间与数据版本，不随页面筛选改变。</p>
 			</div>
 			<button
+				v-if="!context.me.value?.guest"
 				class="cl-button primary"
 				type="button"
 				:disabled="!selected || exporting"
