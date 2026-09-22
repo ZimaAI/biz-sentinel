@@ -297,6 +297,7 @@
 				<slot />
 			</BaseDrawer>
 		</v-main>
+		<footer><IcpFiling /></footer>
 
 		<ConfirmDialog
 			v-model="dialogState.isVisible"

@@ -1,0 +1,54 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Commerce: 后端调试",
+      "type": "java",
+      "request": "launch",
+      "mainClass": "com.alibaba.cloud.ai.dataagent.DataAgentApplication",
+      "projectName": "spring-ai-alibaba-data-agent-management",
+      "cwd": "${workspaceFolder}",
+      "args": "--spring.profiles.active=commerce",
+      "envFile": "${workspaceFolder}/.commerce-local/development.env",
+      "console": "integratedTerminal",
+      "shortenCommandLine": "argfile"
+    },
+    {
+      "name": "Commerce: 前端调试",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/data-agent-frontend-nuxt/node_modules/nuxt/bin/nuxt.mjs",
+      "args": ["dev", "--host", "127.0.0.1", "--port", "3000"],
+      "cwd": "${workspaceFolder}/data-agent-frontend-nuxt",
+      "console": "integratedTerminal",
+      "outputCapture": "std",
+      "autoAttachChildProcesses": true,
+      "skipFiles": ["<node_internals>/**"],
+      "env": {
+        "NO_COLOR": "1",
+        "FORCE_COLOR": "0"
+      },
+      "serverReadyAction": {
+        "pattern": "Local:\\s+(https?://\\S+)",
+        "uriFormat": "%s",
+        "action": "debugWithEdge",
+        "webRoot": "${workspaceFolder}/data-agent-frontend-nuxt",
+        "killOnServerStop": true
+      }
+    },
+    {
+      "name": "Commerce: 浏览器调试（前端已启动）",
+      "type": "msedge",
+      "request": "launch",
+      "url": "http://127.0.0.1:3000/commerce/login",
+      "webRoot": "${workspaceFolder}/data-agent-frontend-nuxt"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Commerce: 前后端联合调试",
+      "configurations": ["Commerce: 后端调试", "Commerce: 前端调试"],
+      "stopAll": true
+    }
+  ]
+}

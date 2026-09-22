@@ -69,21 +69,13 @@ useHead({
 			<div v-if="mobile" class="cl-mobile-backdrop" @click="mobile = false" />
 			<aside class="cl-sidebar" :class="{ open: mobile }" aria-label="主导航">
 				<NuxtLink to="/commerce/overview" class="cl-brand"
-					><span class="cl-logo"
-						><svg
-							width="23"
-							height="24"
-							viewBox="0 0 23 24"
-							fill="none"
-							aria-hidden="true"
-						>
-							<path
-								d="M5 10v9M11.5 5v14M18 8v11"
-								stroke="white"
-								stroke-width="3.5"
-								stroke-linecap="round"
-							/></svg></span
-					><span
+					><img
+						class="cl-logo"
+						src="/brand/commerce-lens.svg"
+						width="38"
+						height="38"
+						alt=""
+					/><span
 						><strong>商脉</strong><small>COMMERCE LENS</small></span
 					></NuxtLink
 				>
@@ -185,11 +177,12 @@ useHead({
 						<div class="cl-skeleton" style="height: 360px" />
 					</div>
 				</main>
-				<footer v-if="context.ready.value" class="cl-footer">
+				<footer class="cl-footer">
 					CommerceLens · 基于 Spring AI Alibaba DataAgent 的经营分析工作台<span
 						v-if="context.dataset.value?.synthetic"
 						>　/　当前为合成演示数据</span
 					>
+					<IcpFiling />
 				</footer>
 			</div>
 		</template>

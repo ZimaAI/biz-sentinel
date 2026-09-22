@@ -68,6 +68,20 @@ export default defineNuxtConfig({
 	},
 	//全局动画配置
 	app: {
+		head: {
+			link: [
+				{
+					rel: 'icon',
+					type: 'image/x-icon',
+					href: '/favicon.ico?v=commerce-lens',
+				},
+				{
+					rel: 'icon',
+					type: 'image/svg+xml',
+					href: '/brand/commerce-lens.svg',
+				},
+			],
+		},
 		pageTransition: { name: 'page', mode: 'out-in' },
 	},
 	css: ['@/assets/css/main.css'],

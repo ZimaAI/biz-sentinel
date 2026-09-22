@@ -37,7 +37,13 @@ async function submit() {
 			<span class="login-footer">基于 Spring AI Alibaba DataAgent</span>
 		</div>
 		<section class="login-form">
-			<span class="cl-logo"><CommerceIcon name="activity" :size="24" /></span>
+			<img
+				class="cl-logo"
+				src="/brand/commerce-lens.svg"
+				width="38"
+				height="38"
+				alt="商脉 CommerceLens"
+			/>
 			<h2>登录商脉工作台</h2>
 			<p>使用管理员为你开通的工作空间账号</p>
 			<form @submit.prevent="submit">
@@ -69,6 +75,7 @@ async function submit() {
 				</button>
 			</form>
 			<small>数据按工作空间与店铺授权隔离，使用记录可追溯。</small>
+			<footer><IcpFiling /></footer>
 		</section>
 	</main>
 </template>

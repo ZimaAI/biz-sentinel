@@ -116,13 +116,10 @@
 	color: var(--cl-text) !important;
 }
 .cl-logo {
-	display: flex;
-	align-items: center;
-	justify-content: center;
+	display: block;
+	flex-shrink: 0;
 	width: 38px;
 	height: 38px;
-	background: var(--cl-primary);
-	color: white;
 	border-radius: 12px;
 	box-shadow: 0 3px 9px #5965e92b;
 }

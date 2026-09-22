@@ -38,6 +38,35 @@ pnpm --dir data-agent-frontend-nuxt install --frozen-lockfile
 
 MySQL 容器名为 `biz-sentinel-commerce-mysql`，本机绑定 `127.0.0.1:13316`，数据卷同名。停止数据库使用 `docker stop biz-sentinel-commerce-mysql`，再次启动脚本会复用容器和数据。保留数据卷时也应保留配套的本地环境文件；修改该文件不会自动更新已有 MySQL 用户密码或已创建管理员的 BCrypt 密码。
 
+## VS Code 启动与调试（Windows）
+
+用 VS Code 打开仓库根目录 `biz-sentinel`，安装工作区推荐的 **Extension Pack for Java**
+和 **Vue - Official**，等待 Java 项目导入完成。准备 JDK 17+、Node.js 22+、pnpm 11+、
+Docker Desktop 和 Microsoft Edge；Java、Node.js、pnpm、Docker 需能在终端中调用。
+
+首次使用，在命令面板执行 `Tasks: Run Task`：
+
+1. 运行 `Commerce: 初始化或启动数据库`，生成本机环境文件并启动 MySQL。
+   用 `docker logs --tail 30 biz-sentinel-commerce-mysql` 确认 MySQL 完成初始化、开始监听 3306 端口后再启动后端。
+2. 运行 `Commerce: 安装前端依赖`。
+3. 运行 `Commerce: 查看本地登录凭据`，获取本机管理员密码。
+
+在“运行和调试”面板选择 `Commerce: 前后端联合调试`，按 **F5**。
+后端启用 `commerce` profile，读取 `.commerce-local/development.env`，监听 `8065`；
+前端监听 `3000`，输出本地访问地址后自动打开带调试器的 Edge。
+首次后端初始化可能比前端慢，等后端启动完成后再登录。
+Java 文件以及前端 `app/` 下的 Vue / TypeScript 文件均可设置断点。
+
+也可以单独选择 `Commerce: 后端调试` 或 `Commerce: 前端调试`。
+已有前端开发服务时，选择 `Commerce: 浏览器调试（前端已启动）`。
+**Ctrl+F5** 可启动选中的服务而不调试；只需普通访问时可直接打开 `http://127.0.0.1:3000`。
+若使用 Chrome，可将配置中的 `debugWithEdge` / `msedge` 分别改为 `debugWithChrome` / `chrome`。
+
+联合调试停止时会停止前后端，数据库容器继续运行；需要时执行
+`docker stop biz-sentinel-commerce-mysql`。下次开发前若数据库已停止，重新运行数据库任务。
+启动前先停止占用 `3000` / `8065` 的旧服务。数据库初始化任务复用现有脚本，
+不会随每次 F5 自动执行；本机环境文件继续由 Git 忽略。
+
 ## 三个数据库身份
 
 | 账号 | 数据库 | 本地脚本授予的权限 | 用途 |
